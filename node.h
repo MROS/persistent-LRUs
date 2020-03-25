@@ -1,10 +1,8 @@
 #pragma once
-#include <stdio.h>
 
 class Node
 {
 public:
+	int init_network();
     void start();
-    void experiment_1();
-    void experiment_2();
 };
