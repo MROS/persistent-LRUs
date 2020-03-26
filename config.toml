@@ -1,4 +1,5 @@
 [network]
+port = 1811
 peers = []
 
 [cache]
