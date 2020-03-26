@@ -1,0 +1,7 @@
+[network]
+peers = []
+
+[cache]
+policy = "LRU"
+data-structure = "order-tree"
+size = 1000

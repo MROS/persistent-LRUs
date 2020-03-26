@@ -1,6 +1,9 @@
 #include "node.h"
 
-int main() {
-    Node node;
-    node.start();
+using namespace std;
+
+int main(int argc, char **argv) {
+	string config("config.toml");
+    Node node(config);
+    // node.start();
 }

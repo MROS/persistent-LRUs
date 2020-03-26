@@ -1,14 +1,23 @@
 #include "node.h"
 #include <unistd.h>
-#include <cstdio>
+#include <iostream>
 #include <sys/socket.h>
 #include <netinet/in.h>
 #include <cstdlib>
 #include <cstring>
+#include <cpptoml.h>
+
+using namespace std;
+
+Node::Node(string &config_file) {
+	auto config = cpptoml::parse_file(config_file);
+	string cache_policy = config->get_qualified_as<string>("cache.policy").value_or("none");
+	cout << "cache policy = " << cache_policy << endl;
+}
 
 void Node::start()
 {
-	printf("淺狀態區塊鏈，啓動！\n");
+	cout << "淺狀態區塊鏈，啓動！\n";
 	init_network();
 }
 
@@ -68,3 +77,4 @@ int Node::init_network() {
 
 	return 0;
 }
+
