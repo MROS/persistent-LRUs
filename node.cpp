@@ -49,7 +49,7 @@ void Node::start()
 		}
 		cout << "accept " << new_sock_fd << endl;
 		thread t(&Node::handle_client, this, new_sock_fd);
-		t.join();
+		t.detach();
 	}
 }
 
