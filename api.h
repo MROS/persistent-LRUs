@@ -31,6 +31,14 @@ struct Api {
 		ss >> data;
 		header.length = data.size();
 	}
+	explicit Api(Block &block) {
+		header.type = Type::BLOCK;
+		std::stringstream ss;
+		cereal::BinaryOutputArchive archive( ss );
+		archive(block);
+		ss >> data;
+		header.length = data.size();
+	}
 	void write(boost::asio::ip::tcp::socket &socket) {
 		using namespace boost::asio;
 		using namespace std;
@@ -60,7 +68,7 @@ struct Api {
 		else if (ec) { throw boost::system::system_error(ec); }
 
 		auto data_len = this->header.length;
-		char *ptr = new char(data_len);
+		char *ptr = new char[data_len];
 		socket.read_some(buffer(ptr, data_len), ec);
 
 		if (ec == boost::asio::error::eof) { return false; }

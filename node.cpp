@@ -6,6 +6,7 @@
 #include <cstdlib>
 #include <thread>
 #include <cpptoml.h>
+#include <sstream>
 
 using namespace std;
 using namespace boost::asio::ip;
@@ -58,21 +59,38 @@ void Node::handle_client(tcp::socket socket) {
 			is_eof = api.read(socket);
 		} catch (exception& e) {
 			cerr << e.what() << endl;
-			return;
+			break;
 		}
 
 		if (!is_eof) {
-			 cout << remote_endpoint.address() << ":" << remote_endpoint.port() << "結束" << endl;
-			return;
+			cout << remote_endpoint.address() << ":" << remote_endpoint.port() << "結束" << endl;
+			break;
 		}
 
 		switch (api.header.type) {
-			case Type::TX:
+			case Type::TX: {
 				cout << "收到交易，長度 = " << api.header.length << endl;
+				stringstream ss(api.data);
+				{
+					cereal::BinaryInputArchive archive( ss );
+					Transaction tx;
+					archive(tx);
+					tx.show();
+				}
 				break;
-			case Type::BLOCK:
+			}
+			case Type::BLOCK: {
 				cout << "收到區塊，長度 = " << api.header.length << endl;
+				stringstream ss(api.data);
+				{
+					cereal::BinaryInputArchive archive( ss );
+					Block block;
+					archive(block);
+					block.show();
+				}
+
 				break;
+			}
 		}
 	}
 }

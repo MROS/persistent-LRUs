@@ -8,8 +8,6 @@ using namespace boost::asio;
 using namespace boost::system;
 
 int main() {
-	Transaction tx = {0, 1, 77};
-	Api api(tx);
 
 	io_service iosev;
 	tcp::socket socket(iosev);
@@ -20,5 +18,12 @@ int main() {
 		std::cout << system_error(ec).what() << std::endl;
 		return -1;
 	}
-	api.write(socket);
+
+	Transaction tx1 { 1, 2, 100 };
+	Transaction tx2 { 2, 3, 70 };
+	Block block { 7, { tx1, tx2 } };
+
+	Api(tx1).write(socket);
+	Api(tx2).write(socket);
+	Api(block).write(socket);
 }
