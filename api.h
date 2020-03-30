@@ -67,15 +67,16 @@ struct Api {
 		if (ec == boost::asio::error::eof) { return false; }
 		else if (ec) { throw boost::system::system_error(ec); }
 
-		auto data_len = this->header.length;
-		char *ptr = new char[data_len];
-		socket.read_some(buffer(ptr, data_len), ec);
+		size_t data_len = this->header.length;
+
+		auto ptr = unique_ptr<char>(new char[data_len]);
+		socket.read_some(buffer(ptr.get(), data_len), ec);
 
 		if (ec == boost::asio::error::eof) { return false; }
 		else if (ec) { throw boost::system::system_error(ec); }
 
-		this->data = string(ptr, data_len);
-		delete ptr;
+		this->data = string(ptr.get(), data_len);
+
 		return true;
 	}
 };
