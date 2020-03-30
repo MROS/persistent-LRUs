@@ -5,4 +5,6 @@ find_package (Threads)
 find_package(Boost REQUIRED COMPONENTS system)
 
 add_executable(node main.cpp node.cpp)
+add_executable(client client.cpp)
 target_link_libraries (node ${CMAKE_THREAD_LIBS_INIT} ${Boost_LIBRARIES})
+target_link_libraries (client ${CMAKE_THREAD_LIBS_INIT} ${Boost_LIBRARIES})

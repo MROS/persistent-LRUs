@@ -1,4 +1,6 @@
 #include "node.h"
+#include "api.h"
+#include "constant.h"
 #include <iostream>
 #include <boost/asio.hpp>
 #include <cstdlib>
@@ -49,20 +51,28 @@ void Node::start()
 void Node::handle_client(tcp::socket socket) {
 	auto remote_endpoint = socket.remote_endpoint();
 	cout << "accept " << remote_endpoint.address() << ":" << remote_endpoint.port() << endl;
+	bool is_eof = false;
 	while (true) {
-		char buf[128];
-		boost::system::error_code ec;
-		size_t len = socket.read_some(buffer(buf, 100), ec);
-		buf[len] = '\0';
-
-		if (ec)
-		{
-			cout << boost::system::system_error(ec).what() << endl;
-			break;
+		Api api;
+		try {
+			is_eof = api.read(socket);
+		} catch (exception& e) {
+			cerr << e.what() << endl;
+			return;
 		}
 
-		cout << buf << endl;
+		if (!is_eof) {
+			 cout << remote_endpoint.address() << ":" << remote_endpoint.port() << "結束" << endl;
+			return;
+		}
 
+		switch (api.header.type) {
+			case Type::TX:
+				cout << "收到交易，長度 = " << api.header.length << endl;
+				break;
+			case Type::BLOCK:
+				cout << "收到區塊，長度 = " << api.header.length << endl;
+				break;
+		}
 	}
-	return;
 }

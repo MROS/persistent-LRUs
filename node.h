@@ -8,7 +8,7 @@ class Node
 {
 	int port;
 public:
-	Node(std::string &config_file);
+	explicit Node(std::string &config_file);
 	void handle_client(boost::asio::ip::tcp::socket socket);
     void start();
 };
