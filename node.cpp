@@ -1,12 +1,13 @@
 #include "node.h"
 #include "api.h"
-#include "constant.h"
+#include "chain.h"
+#include "channel.h"
 #include <iostream>
 #include <boost/asio.hpp>
+#include <memory>
 #include <cstdlib>
 #include <thread>
 #include <cpptoml.h>
-#include <sstream>
 
 using namespace std;
 using namespace boost::asio::ip;
@@ -14,6 +15,7 @@ using namespace boost::asio;
 using namespace boost::system;
 
 Node::Node(string &config_file) {
+	channel = make_shared<Channel<shared_ptr<Api>>>(Channel<shared_ptr<Api>>());
 	auto config = cpptoml::parse_file(config_file);
 
 	auto cache_policy = config->get_qualified_as<string>("cache.policy");
@@ -37,6 +39,13 @@ Node::Node(string &config_file) {
 void Node::start()
 {
 	cout << "淺狀態區塊鏈，啓動！\n";
+
+	// 開啓 tx, block 處理線程
+	Chain chain(channel);
+	thread c(&Chain::start, &chain);
+	c.detach();
+
+	// 開啓 socket 監聽線程
 	io_service iosev;
 	ip::tcp::acceptor acceptor(iosev,
 							   tcp::endpoint(tcp::v4(), this->port));
@@ -54,10 +63,11 @@ void Node::handle_client(tcp::socket socket) {
 	cout << "accept " << remote_endpoint.address() << ":" << remote_endpoint.port() << endl;
 	bool is_eof = false;
 	while (true) {
-		Api api;
+		auto api = make_shared<Api>();
 		try {
-			is_eof = api.read(socket);
+			is_eof = api->read(socket);
 		} catch (exception& e) {
+			cerr << "handle_client 讀取錯誤" << endl;
 			cerr << e.what() << endl;
 			break;
 		}
@@ -67,30 +77,11 @@ void Node::handle_client(tcp::socket socket) {
 			break;
 		}
 
-		switch (api.header.type) {
-			case Type::TX: {
-				cout << "收到交易，長度 = " << api.header.length << endl;
-				stringstream ss(api.data);
-				{
-					cereal::BinaryInputArchive archive( ss );
-					Transaction tx;
-					archive(tx);
-					tx.show();
-				}
-				break;
-			}
-			case Type::BLOCK: {
-				cout << "收到區塊，長度 = " << api.header.length << endl;
-				stringstream ss(api.data);
-				{
-					cereal::BinaryInputArchive archive( ss );
-					Block block;
-					archive(block);
-					block.show();
-				}
+		channel->add(api);
 
-				break;
-			}
-		}
 	}
+}
+
+void Node::handle_transaction() {
+
 }

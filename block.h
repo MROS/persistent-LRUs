@@ -6,16 +6,19 @@
 #include "transaction.h"
 
 struct Block {
-	int64_t height;
+	uint64_t prev_block_hash;
+	uint64_t height;
+	uint64_t nonce;
 	std::vector<Transaction> txs;
 
 	template <class Archive>
 	void serialize( Archive & ar )
 	{
-		ar( height, txs );
+		ar( prev_block_hash, height, nonce, txs );
 	}
 	// for debug
 	void show() {
+		std::cout << "前一個區塊 = " << prev_block_hash << std::endl;
 		std::cout << "區塊高度 = " << height << std::endl;
 		for (auto tx: txs) {
 			tx.show();

@@ -1,4 +1,4 @@
 #pragma once
 
-// 網路傳輸中，一筆數據長度最多爲 MAX_DATA_SIZE
-const size_t MAX_DATA_SIZE = 1024 * 1024;
+// 高度與目前最高區塊相差超過 RESERVE_BLOCK_NUMBER 的區塊將被丟棄
+const unsigned int RESERVE_BLOCK_NUMBER = 100;
