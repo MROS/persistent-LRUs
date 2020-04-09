@@ -48,7 +48,7 @@ void Chain::add_block(Block block) {
 
 	blocks[cur_block.hash] = make_shared<BlockInfo>(cur_block);
 
-	vector<uint64_t> too_old;
+	vector<hash_t> too_old;
 	for (auto kv: blocks) {
 		auto b = kv.second;
 		if (b->block.height <= block.height - RESERVE_BLOCK_NUMBER) {
@@ -59,5 +59,13 @@ void Chain::add_block(Block block) {
 		blocks.erase(h);
 	}
 
+	// TODO: 同時要清除 tx_pool
+
+	cur_block_hash = cur_block.hash;
+	regen_block();
+}
+
+void Chain::add_tx(Transaction tx) {
+	tx_pool.insert(tx);
 }
 

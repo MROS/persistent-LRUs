@@ -4,15 +4,17 @@
 #include "cereal/archives/binary.hpp"
 
 struct Transaction {
-	int64_t from, to, value;
+	// nonce 代表付款人是第幾次付款
+	// 以此來防止一個交易被多次使用
+	int64_t from, to, value, nonce;
 	template <class Archive>
 	void serialize( Archive & ar )
 	{
-		ar( from, to, value );
+		ar( from, to, value, nonce );
 	}
 
 	// for debug
 	void show() {
-		std::cout << "from: " << from << ", to: " << to << ", value: " << value << std::endl;
+		std::cout << "from: " << from << ", to: " << to << ", value: " << value << ", nonce: " << nonce << std::endl;
 	}
 };
