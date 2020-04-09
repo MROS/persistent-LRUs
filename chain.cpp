@@ -1,4 +1,5 @@
 #include "chain.h"
+#include "constant.h"
 #include <iostream>
 #include <memory>
 
@@ -28,9 +29,35 @@ void Chain::start() {
 					Block block;
 					archive(block);
 					block.show();
+					add_block(block);
 				}
 				break;
 			}
 		}
 	}
 }
+
+void Chain::add_block(Block block) {
+	auto res = blocks.find(block.prev_block_hash);
+	if (res == blocks.end()) {
+		cerr << "插入區塊時，找不到前一個區塊" << endl;
+		return;
+	}
+
+	auto cur_block = BlockInfo(block);
+
+	blocks[cur_block.hash] = make_shared<BlockInfo>(cur_block);
+
+	vector<uint64_t> too_old;
+	for (auto kv: blocks) {
+		auto b = kv.second;
+		if (b->block.height <= block.height - RESERVE_BLOCK_NUMBER) {
+			too_old.push_back(b->hash);
+		}
+	}
+	for (auto h: too_old) {
+		blocks.erase(h);
+	}
+
+}
+
