@@ -17,11 +17,16 @@ int main() {
 		return -1;
 	}
 
-	Transaction tx1 { 1, 2, 100 };
-	Transaction tx2 { 2, 3, 70 };
-	Block block { 0, 0, 0, { tx1, tx2 } };
+//	Transaction tx2 { 2, 3, 70 };
+//	Block block { 0, 0, 0, { tx1, tx2 } };
 
-	Api(tx1).write(socket);
-	Api(tx2).write(socket);
-	Api(block).write(socket);
+	Transaction tx { 1, 0, 100 };
+	for (int64_t i = 1; i <= 20; i++) {
+		tx.to = i;
+		Api(tx).write(socket);
+	}
+
+//	Api(tx1).write(socket);
+//	Api(tx2).write(socket);
+//	Api(block).write(socket);
 }

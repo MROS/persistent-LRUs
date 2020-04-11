@@ -14,6 +14,7 @@ using namespace boost::asio::ip;
 using namespace boost::asio;
 using namespace boost::system;
 
+// TODO: 使用一個全域變數來儲存 config ，並在 main.cpp 初始化
 Node::Node(string &config_file) {
 	channel = make_shared<Channel<shared_ptr<Api>>>(Channel<shared_ptr<Api>>());
 	auto config = cpptoml::parse_file(config_file);

@@ -33,23 +33,35 @@ enum class TXState {
 class Chain {
 	std::shared_ptr<Channel<std::shared_ptr<Api>>> channel;
 	std::unordered_map<hash_t, std::shared_ptr<BlockInfo>> blocks;
-	// 簡單點處理，太舊的直接丟掉
-	std::set<Transaction> tx_pool;
+
+	// 依附於某個區塊的帶證明交易
+	std::unordered_map<hash_t, std::unordered_set<std::shared_ptr<TransactionWithProof>>> txs_with_proof;
+
+	// 不附證明的交易，意圖仰賴快取
+	std::unordered_set<std::shared_ptr<Transaction>> txs;
 
 	Block mining_block;
 
 	hash_t cur_block_hash;
+
 public:
 	explicit Chain(std::shared_ptr<Channel<std::shared_ptr<Api>>> channel) {
 		this->channel = std::move(channel);
+
+		// 創世區塊
+		// TODO: 思考是否能夠如此隨意設定
+		cur_block_hash = 0;
+		blocks[cur_block_hash] = std::make_shared<BlockInfo>(BlockInfo(Block()));
 	}
+
 	void start();
 
-	void add_block(Block block);
-	void add_tx(Transaction tx);
+	void add_block(Block &block);
+	void add_tx(Transaction &tx);
+	void add_tx_with_proof(TransactionWithProof &tx);
+
+	void broadcast(Block &block);
 
 	// cur_block_hash 改變之後，重新生成一個正在產生的區塊 (mining_block)
 	virtual void regen_block();
-
-	virtual bool is_valid_now(Transaction tx);
 };

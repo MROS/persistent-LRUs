@@ -28,7 +28,7 @@ struct Api {
 		std::stringstream ss;
 		cereal::BinaryOutputArchive archive( ss );
 		archive(tx);
-		ss >> data;
+		data = ss.str();
 		header.length = data.size();
 	}
 	explicit Api(Block &block) {
@@ -36,7 +36,7 @@ struct Api {
 		std::stringstream ss;
 		cereal::BinaryOutputArchive archive( ss );
 		archive(block);
-		ss >> data;
+		data = ss.str();
 		header.length = data.size();
 	}
 	void write(boost::asio::ip::tcp::socket &socket) {
@@ -44,6 +44,8 @@ struct Api {
 		using namespace std;
 
 		boost::system::error_code ec;
+
+		cout << "Api write: " << "header.length = " << header.length << endl;
 
 		socket.write_some(buffer( &header, sizeof(Header)), ec);
 		if (ec) { cerr << boost::system::system_error(ec).what() << endl; }

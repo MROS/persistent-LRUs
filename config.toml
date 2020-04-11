@@ -1,6 +1,6 @@
 [network]
 port = 1811
-peers = []
+peers = [1810] # TODO: 增加 ip ，以支援多機器
 
 [cache]
 policy = "LRU"
