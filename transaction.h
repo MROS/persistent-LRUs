@@ -2,6 +2,7 @@
 #include <iostream>
 #include <cstdint>
 #include "cereal/archives/binary.hpp"
+#include "edrax/vcs.h"
 
 using hash_t = uint64_t;
 
@@ -22,20 +23,19 @@ struct Transaction {
 	}
 };
 
-// TODO: 設計 proof 結構
-struct Proof {
-	hash_t todo;
-};
+using Proof = std::vector<Ec1>;
 
 struct TransactionWithProof {
 	int64_t from, to, value, nonce;
+	int64_t from_balance;
 	hash_t block_hash;
 	Proof proof;
-	template <class Archive>
-	void serialize( Archive & ar )
-	{
-		ar( from, to, value, nonce, block_hash, proof );
-	}
+
+//	template <class Archive>
+//	void serialize( Archive & ar )
+//	{
+//		ar( from, to, value, nonce, from_balance, block_hash, proof );
+//	}
 
 	// for debug
 	void show() {

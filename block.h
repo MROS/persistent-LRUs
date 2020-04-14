@@ -10,6 +10,7 @@ struct Block {
 	uint64_t height;
 	uint64_t nonce;
 	std::vector<Transaction> txs;
+	std::vector<TransactionWithProof> txs_with_proof;
 
 	template <class Archive>
 	void serialize( Archive & ar )

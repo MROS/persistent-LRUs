@@ -13,6 +13,38 @@ using namespace std;
 
 void Chain::start() {
 	cout << "chain start" << endl;
+
+	// TODO: 直接在此 add_block 以進行試驗
+	// TODO: 最後還是要做序列化
+	Block block1 { 0, 1, 0, {}, {}};
+
+	for (int64_t i = 1; i <= 20; i++) {
+		TransactionWithProof tx;
+		tx.from = 1;
+		tx.to = i;
+		tx.value = 100;
+		tx.nonce = 0;
+		tx.block_hash = 0;
+		tx.from_balance = 0;
+		tx.proof = vector<Ec1>(EDRAX_BITS, vc.a->g1*0);
+		block1.txs_with_proof.push_back(tx);
+	}
+
+	add_block(block1);
+
+	Block block2 { BlockInfo(block1).hash, 2, 0, {}, {} };
+
+	for (int64_t i = 1; i <= 20; i++) {
+		TransactionWithProof tx;
+		tx.from = 1;
+		tx.to = i;
+		tx.value = 100;
+		tx.nonce = 0;
+		tx.block_hash = 0;
+		tx.proof = vector<Ec1>(EDRAX_BITS, vc.a->g1*0);
+		block1.txs_with_proof.push_back(tx);
+	}
+
 	while (true) {
 		auto api = channel->remove();
 		switch (api->header.type) {
@@ -50,6 +82,16 @@ void Chain::add_block(Block &block) {
 		cerr << "插入區塊時，找不到前一個區塊" << endl;
 		return;
 	}
+	auto prev_block = res->second;
+
+	// 驗證 edrax 證明
+	for (auto tx: block.txs_with_proof) {
+		if (!vc.verify(prev_block->digest, tx.from, mpz_class(tx.from_balance), tx.proof)) {
+			cerr << "edrax 驗證錯誤" << endl;
+			return;
+		}
+	}
+	cout << "edrax 驗證成功" << endl;
 
 	auto cur_block = BlockInfo(block);
 

@@ -1,4 +1,5 @@
 #include "node.h"
+#include "VC.h"
 #include <iostream>
 
 using namespace std;

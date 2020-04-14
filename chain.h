@@ -2,6 +2,8 @@
 #include "block.h"
 #include "channel.h"
 #include "api.h"
+#include "edrax/vcs.h"
+#include "VC.h"
 #include <functional>
 #include <memory>
 #include <utility>
@@ -14,6 +16,7 @@ using hash_t = uint64_t;
 struct BlockInfo {
 	Block block;
 	hash_t hash;
+	Ec1 digest;
 
 	// 後繼區塊的 hash
 	// std::vector< hash_t > successors;
@@ -23,11 +26,6 @@ struct BlockInfo {
 		this->hash = std::hash<Block *>{}(&this->block);
 	}
 
-};
-
-enum class TXState {
-	VALID,
-	INVALID,
 };
 
 class Chain {
@@ -44,6 +42,8 @@ class Chain {
 
 	hash_t cur_block_hash;
 
+	VC vc;
+
 public:
 	explicit Chain(std::shared_ptr<Channel<std::shared_ptr<Api>>> channel) {
 		this->channel = std::move(channel);
@@ -51,7 +51,9 @@ public:
 		// 創世區塊
 		// TODO: 思考是否能夠如此隨意設定
 		cur_block_hash = 0;
-		blocks[cur_block_hash] = std::make_shared<BlockInfo>(BlockInfo(Block()));
+		auto block_info = std::make_shared<BlockInfo>(BlockInfo(Block()));
+		block_info->digest = vc.a->g1 * 0;
+		blocks[cur_block_hash] = block_info;
 	}
 
 	void start();
