@@ -1,3 +1,6 @@
+// 暫時用不到
+// 待有時間序列化時再處理本檔案
+
 #include <boost/asio.hpp>
 #include "api.h"
 #include "transaction.h"

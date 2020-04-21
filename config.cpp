@@ -1,5 +1,6 @@
 #include "config.h"
 #include <string>
+#include <cstdlib>
 #include <iostream>
 
 using namespace std;

@@ -5,9 +5,7 @@
 #include <iostream>
 #include <boost/asio.hpp>
 #include <memory>
-#include <cstdlib>
 #include <thread>
-#include <cpptoml.h>
 #include "config.h"
 
 using namespace std;
