@@ -8,33 +8,18 @@
 #include <cstdlib>
 #include <thread>
 #include <cpptoml.h>
+#include "config.h"
 
 using namespace std;
 using namespace boost::asio::ip;
 using namespace boost::asio;
 using namespace boost::system;
 
-// TODO: 使用一個全域變數來儲存 config ，並在 main.cpp 初始化
-Node::Node(string &config_file) {
+extern Config config;
+
+Node::Node() {
 	channel = make_shared<Channel<shared_ptr<Api>>>(Channel<shared_ptr<Api>>());
-	auto config = cpptoml::parse_file(config_file);
-
-	auto cache_policy = config->get_qualified_as<string>("cache.policy");
-	if (cache_policy) {
-		cout << "cache policy = " << *cache_policy << endl;
-	} else {
-		cerr << "無快取策略" << endl;
-		exit(1);
-	}
-
-	auto port = config->get_qualified_as<int>("network.port").value_or(0);
-	if (port) {
-		this->port = port;
-		cout << "port = " << this->port << endl;
-	} else {
-		cerr << "未指定埠口" << endl;
-		exit(1);
-	}
+	this->port = config.port;
 }
 
 void Node::start()
@@ -81,8 +66,4 @@ void Node::handle_client(tcp::socket socket) {
 		channel->add(api);
 
 	}
-}
-
-void Node::handle_transaction() {
-
 }

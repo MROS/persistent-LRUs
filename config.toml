@@ -1,6 +1,9 @@
 [network]
 port = 1811
-peers = [1810] # TODO: 增加 ip ，以支援多機器
+
+# TODO: 增加 ip ，以支援多機器
+# 註：如果不做多節點就不需要這個欄位
+peers = [1810]
 
 [cache]
 policy = "LRU"

@@ -1,11 +1,12 @@
 #include "node.h"
-#include "VC.h"
-#include <iostream>
+#include "config.h"
+#include <string>
 
 using namespace std;
 
 int main(int argc, char **argv) {
-	string config("config.toml");
-	Node node(config);
+	string f("config.toml");
+	init_config(f);
+	Node node{};
 	node.start();
 }
