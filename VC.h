@@ -15,7 +15,7 @@ public:
 	vector<Ec2> vrk;          // verify key
 
 	// 只有 [0 ~ update_number) 的賬戶可能會被修改
-	size_t update_key_nuumber = EDRAX_UPDATE_KEY_NUMBER;
+	size_t update_key_number = EDRAX_UPDATE_KEY_NUMBER;
 	vector<vector<Ec1>> upk;  // update key
 
 	size_t bits = EDRAX_BITS;
@@ -25,8 +25,9 @@ public:
 	vcs *a;
 
 	// vector 長爲 2 ^ bits
-	VC() {
-		printf("初始化 vector commitment, update key number = %lu, bits = %lu\n", update_key_nuumber, bits);
+	VC(bool x) {
+		if (x == false) { return; }
+		printf("初始化 vector commitment, update key number = %lu, bits = %lu\n", update_key_number, bits);
 		bn::CurveParam cp = bn::CurveFp254BNb;
 		Param::init(cp);
 		const Point& pt = selectPoint(cp);
@@ -39,8 +40,8 @@ public:
 		mpz_class p;
 		p.set_str("16798108731015832284940804142231733909759579603404752749028378864165570215949",10);
 
-		// TODO: 拿掉亂數，以使各個節點的 key 一樣
-		srand(time(NULL));
+		// 亂數種子永遠相同
+		srand(0);
 		gmp_randstate_t r_state;
 		unsigned long int seed = rand();
 		gmp_randinit_default (r_state);
@@ -52,7 +53,7 @@ public:
 		a->load_key(prk,vrk);
 
 		vector<long long> update_indexs;
-		for(long long i = 0; i < update_key_nuumber; i++) {
+		for(long long i = 0; i < update_key_number; i++) {
 			update_indexs.push_back(i);
 		}
 		upk = a->calc_update_key_batch(update_indexs, prk);
@@ -70,3 +71,4 @@ public:
 	}
 };
 
+VC get_vc();

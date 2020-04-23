@@ -1,7 +1,9 @@
 #pragma once
+
 #include "block.h"
 #include "channel.h"
 #include "edrax/vcs.h"
+#include "workload.h"
 #include "VC.h"
 #include <functional>
 #include <memory>
@@ -18,8 +20,9 @@ struct BlockInfo {
 	Ec1 digest;
 
 	explicit BlockInfo(Block block) {
-		this->block = block;
+		this->block = std::move(block);
 		this->hash = std::hash<Block *>{}(&this->block);
+		// TODO: 生成 digest
 	}
 
 };
@@ -27,20 +30,10 @@ struct BlockInfo {
 class Chain {
 	std::unordered_map<hash_t, std::shared_ptr<BlockInfo>> blocks;
 
-	VC vc;
-
 public:
-	explicit Chain() {
+	explicit Chain();
 
-		// 創世區塊
-		// TODO: 思考是否能夠如此隨意設定
-		auto genesis_block_hash = 0;
-		auto block_info = std::make_shared<BlockInfo>(BlockInfo(Block()));
-		block_info->digest = vc.a->g1 * 0;
-		blocks[genesis_block_hash] = block_info;
-	}
-
-	void start();
+	void work(Workload &workload);
 
 	void add_block(Block &block);
 //	void add_tx(Transaction &tx);
