@@ -28,7 +28,6 @@ using Proof = std::vector<Ec1>;
 struct TransactionWithProof {
 	int64_t from, to, value, nonce;
 	int64_t from_balance;
-	hash_t block_hash;
 	Proof proof;
 
 //	template <class Archive>

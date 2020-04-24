@@ -68,7 +68,7 @@ public:
 		return a->update_digest(digest, index, std::move(delta), upk[index]);
 	}
 	bool verify(Ec1 digest, int index, mpz_class a_i, vector<Ec1> proof) {
-		return a->verify(digest, index, std::move(a_i), std::move(proof), vrk);
+		return a->verify(digest, index, a_i, proof, vrk);
 	}
 };
 

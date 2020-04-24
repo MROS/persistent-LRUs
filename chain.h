@@ -23,7 +23,7 @@ struct BlockInfo {
 		this->block = std::move(block);
 		// NOTE: 先用 nonce 當做 hash ，副作用是每個 nonce 都得不同
 		this->hash = this->block.nonce;
-		// TODO: 生成 digest
+
 		Ec1 new_digest = prev_digest;
 		for (auto tx: this->block.txs) {
 			new_digest = get_vc().update_digest(new_digest, tx.from, mpz_class(-tx.value));

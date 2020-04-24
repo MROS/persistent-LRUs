@@ -8,17 +8,16 @@
 using namespace std;
 
 Proof update_block(Proof proof, int index, const Block& block) {
-	// TODO
 	Proof new_proof = std::move(proof);
 	for (auto tx: block.txs) {
 		new_proof = get_vc().update_proof(new_proof, index, tx.from, mpz_class(-tx.value));
 		new_proof = get_vc().update_proof(new_proof, index, tx.to, mpz_class(tx.value));
 	}
-	for (auto tx: block.txs_with_proof) {
+	for (const auto& tx: block.txs_with_proof) {
 		new_proof = get_vc().update_proof(new_proof, index, tx.from, mpz_class(-tx.value));
 		new_proof = get_vc().update_proof(new_proof, index, tx.to, mpz_class(tx.value));
 	}
-	return {};
+	return new_proof;
 }
 
 HardCodedWorkload simple_workload() {
@@ -33,14 +32,12 @@ HardCodedWorkload simple_workload() {
 
 	for (int64_t i = 1; i <= 20; i++) {
 		TransactionWithProof tx;
-		tx.from = 1;
+		tx.from = 0;
 		tx.to = i;
 		tx.value = 100;
 		tx.nonce = 0;
-		tx.block_hash = 0;
 		tx.from_balance = 0;
 		tx.proof = proofs[tx.from];
-		proofs[tx.from] = tx.proof;
 		block1.txs_with_proof.push_back(tx);
 	}
 
@@ -57,11 +54,10 @@ HardCodedWorkload simple_workload() {
 
 	for (int64_t i = 1; i <= 20; i++) {
 		TransactionWithProof tx;
-		tx.from = 1;
+		tx.from = 0;
 		tx.to = i;
 		tx.value = 100;
 		tx.nonce = 0;
-		tx.block_hash = 0;
 		tx.from_balance = -2000;
 		tx.proof = proofs[tx.from];
 		block2.txs_with_proof.push_back(tx);
@@ -69,18 +65,5 @@ HardCodedWorkload simple_workload() {
 	blocks.push_back(block2);
 
 	return HardCodedWorkload(blocks);
-
-	//	Block block2 { BlockInfo(block1).hash, 2, 0, {}, {} };
-	//
-	//	for (int64_t i = 1; i <= 20; i++) {
-	//		TransactionWithProof tx;
-	//		tx.from = 1;
-	//		tx.to = i;
-	//		tx.value = 100;
-	//		tx.nonce = 0;
-	//		tx.block_hash = 0;
-	//		tx.proof = vector<Ec1>(EDRAX_BITS, vc.a->g1*0);
-	//		block1.txs_with_proof.push_back(tx);
-	//	}
 
 }
