@@ -7,7 +7,7 @@
 
 struct Block {
 	uint64_t prev_block_hash;
-	uint64_t height;
+	int64_t height;
 	uint64_t nonce;
 	std::vector<Transaction> txs;
 	std::vector<TransactionWithProof> txs_with_proof;

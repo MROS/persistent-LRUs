@@ -19,10 +19,21 @@ struct BlockInfo {
 	hash_t hash;
 	Ec1 digest;
 
-	explicit BlockInfo(Block block) {
+	explicit BlockInfo(Block block, Ec1 prev_digest) {
 		this->block = std::move(block);
-		this->hash = std::hash<Block *>{}(&this->block);
+		// NOTE: 先用 nonce 當做 hash ，副作用是每個 nonce 都得不同
+		this->hash = this->block.nonce;
 		// TODO: 生成 digest
+		Ec1 new_digest = prev_digest;
+		for (auto tx: this->block.txs) {
+			new_digest = get_vc().update_digest(new_digest, tx.from, mpz_class(-tx.value));
+			new_digest = get_vc().update_digest(new_digest, tx.to, mpz_class(tx.value));
+		}
+		for (const auto& tx: this->block.txs_with_proof) {
+			new_digest = get_vc().update_digest(new_digest, tx.from, mpz_class(-tx.value));
+			new_digest = get_vc().update_digest(new_digest, tx.to, mpz_class(tx.value));
+		}
+		this->digest = new_digest;
 	}
 
 };

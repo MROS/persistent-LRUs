@@ -1,6 +1,7 @@
 #pragma once
 
 #include <cstddef>
+#include <utility>
 #include <gmp.h>
 #include <gmpxx.h>
 #include "constant.h"
@@ -61,13 +62,13 @@ public:
 	// update_index 處發生修改
 	// 欲取得 index 處的新證明
 	vector<Ec1> update_proof(vector<Ec1> proof, int index, int update_index, mpz_class delta) {
-		return a->update_proof(proof, update_index, index, delta, upk[update_index]);
+		return a->update_proof(std::move(proof), update_index, index, std::move(delta), upk[update_index]);
 	}
-	Ec1 update_digest(Ec1 digest, int index, mpz_class delta, vector<Ec1> upk_u) {
-		return a->update_digest(digest, index, delta, upk_u);
+	Ec1 update_digest(Ec1 digest, int index, mpz_class delta) {
+		return a->update_digest(digest, index, std::move(delta), upk[index]);
 	}
 	bool verify(Ec1 digest, int index, mpz_class a_i, vector<Ec1> proof) {
-		return a->verify(digest, index, a_i, proof, vrk);
+		return a->verify(digest, index, std::move(a_i), std::move(proof), vrk);
 	}
 };
 

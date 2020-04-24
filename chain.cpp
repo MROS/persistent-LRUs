@@ -8,7 +8,8 @@ using namespace std;
 Chain::Chain() {
 	// 創世區塊
 	auto genesis_block_hash = 0;
-	auto block_info = std::make_shared<BlockInfo>(BlockInfo(Block()));
+	// 創世區塊的 prev_digest 不重要
+	auto block_info = std::make_shared<BlockInfo>(BlockInfo(Block(), get_vc().a->g1 * 0));
 	// TODO: 初始要分配大家一些錢
 	block_info->digest = get_vc().a->g1 * 0;
 	blocks[genesis_block_hash] = block_info;
@@ -17,7 +18,7 @@ Chain::Chain() {
 void Chain::add_block(Block &block) {
 	auto res = blocks.find(block.prev_block_hash);
 	if (res == blocks.end()) {
-		cerr << "插入區塊時，找不到前一個區塊" << endl;
+		cerr << "插入區塊時，找不到前一個區塊 " << block.prev_block_hash << endl;
 		return;
 	}
 	auto prev_block = res->second;
@@ -32,7 +33,7 @@ void Chain::add_block(Block &block) {
 	}
 	cout << "edrax 驗證成功" << endl;
 
-	auto block_info = BlockInfo(block);
+	auto block_info = BlockInfo(block, prev_block->digest);
 
 	blocks[block_info.hash] = make_shared<BlockInfo>(block_info);
 
