@@ -33,7 +33,7 @@ public:
 	bool verify_block(Block &block, BlockInfo &prev_block_info) override;
 };
 
-// 快取最近 K 塊
+// 快取 LRU
 class ChainLRU: public Chain {
 public:
 	bool verify_block(Block &block, BlockInfo &prev_block_info) override;
