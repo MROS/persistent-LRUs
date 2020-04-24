@@ -19,22 +19,16 @@ void Chain::add_block(Block &block) {
 	auto res = blocks.find(block.prev_block_hash);
 	if (res == blocks.end()) {
 		cerr << "插入區塊時，找不到前一個區塊 " << block.prev_block_hash << endl;
-		return;
+		exit(1);
 	}
 	auto prev_block = res->second;
 
-	// 驗證 edrax 證明
-	for (const auto& tx: block.txs_with_proof) {
-		cout << "tx.from: " << tx.from << ", tx.from_balance: " << tx.from_balance << endl;
-		if (!get_vc().verify(prev_block->digest, tx.from, mpz_class(tx.from_balance), tx.proof)) {
-			cerr << "edrax 驗證錯誤" << endl;
-			return;
-		}
+	if (!verify_block(block, *prev_block)) {
+		cerr << "驗證區塊失敗" << endl;
+		exit(1);
 	}
-	cout << "edrax 驗證成功" << endl;
 
-	auto block_info = BlockInfo(block, prev_block->digest);
-
+	auto block_info = BlockInfo(block, blocks[block.prev_block_hash]->digest);
 	blocks[block_info.hash] = make_shared<BlockInfo>(block_info);
 
 	// XXX: 每次都遍歷會不會太慢
@@ -56,6 +50,20 @@ void Chain::work(Workload &workload) {
 	while ((block = workload.next()) != nullptr) {
 		add_block(*block);
 	}
-
 }
+
+bool Chain::verify_block(Block &block, BlockInfo &prev_block_info) {
+
+	// 驗證 edrax 證明
+	for (const auto& tx: block.txs_with_proof) {
+		cout << "tx.from: " << tx.from << ", tx.from_balance: " << tx.from_balance << endl;
+		if (!get_vc().verify(prev_block_info.digest, tx.from, mpz_class(tx.from_balance), tx.proof)) {
+			cerr << "edrax 驗證錯誤" << endl;
+			return false;
+		}
+	}
+	cout << "edrax 驗證成功" << endl;
+	return true;
+}
+
 
