@@ -242,7 +242,6 @@ public:
 		return ret;
 	}
 
-
 	// 回傳現在葉子節點的順序
 	std::vector<_KeyValue> *order(_Node *node);
 
@@ -267,7 +266,6 @@ public:
 			};
 		}
 	}
-
 
 	// 創建一個新的樹， node 的值被修改爲 value ，並且 node 將被移到當前 cursor 位置
 	std::pair<OrderTree*, _Node*> put(_Node *node, Value value);
