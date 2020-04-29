@@ -12,8 +12,11 @@ int main() {
         nodes.push_back(ret.second);
         order_tree->show();
     }
-    // auto ret = order_tree->change_value(nodes[0], 100);
-    // ret.first->show();
+//	auto put_ret = order_tree->change_value(nodes[0], 100);
+//	put_ret.first->show();
+	auto put_ret = order_tree->put(nodes[0], 100);
+	put_ret.first->show();
+
     auto ret = order_tree->get(nodes[0]);
     order_tree = ret.new_tree;
     order_tree->show();

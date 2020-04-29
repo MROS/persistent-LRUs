@@ -7,7 +7,7 @@ template<typename Value>
 class Node {
 public:
     Node *children[2];
-    int key;
+    int key; // 作用是 debug ? TODO: 若無用，刪除之
     Value value;          // value 若爲 -1 ，表示沒有 value
     int index;          // index 若爲 -1 ，表示其爲內部節點（而非葉子節點）
     Node() : children{nullptr, nullptr}, key(0), value(-1), index(-1) {}
@@ -129,7 +129,7 @@ public:
 
 	// 創建一個新的樹， node 的值被修改爲 value
 	std::pair<OrderTree*, _Node*> change_value(_Node *node, Value value) {
-		_Node *old_pointer = this->root;     // 原樹的指標
+		_Node *old_pointer = this->root;      // 原樹的指標
 		_Node *new_pointer = new _Node();     // 正在創建的新樹的指標
 		_Node *new_root = new_pointer;
 		for (int h = this->height - 1; h >= 0; h--) {
@@ -140,6 +140,7 @@ public:
 			new_pointer = new_pointer->children[br];
 		}
 		new_pointer->value = value;
+		new_pointer->index = node->index;
 		OrderTree *new_tree = this->new_tree();
 		new_tree->root = new_root;
 		std::pair<OrderTree*, _Node*> ret = {new_tree, new_pointer};
@@ -268,7 +269,13 @@ public:
 	}
 
 	// 創建一個新的樹， node 的值被修改爲 value ，並且 node 將被移到當前 cursor 位置
-	std::pair<OrderTree*, _Node*> put(_Node *node, Value value);
+	std::pair<OrderTree*, _Node*> put(_Node *node, Value value) {
+		auto ret = change_value(node, value);
+		auto tree = ret.first;
+		tree->show();
+		auto new_node = ret.second;
+		return tree->to_head(new_node);
+	}
 
     OrderTree* update(_Node *node, Value value);
 };
