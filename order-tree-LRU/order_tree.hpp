@@ -1,5 +1,6 @@
 #pragma once
 #include <vector>
+#include <queue>
 #include <cstdio>
 
 // NOTE: 有 enum 的話，可分成內部節點跟葉子節點
@@ -64,7 +65,7 @@ private:
 		return _createFullTree(height, 0, kvs);
 	}
 	// 將 node 底下的葉子塞入 v 中。是 order 的輔助函數
-	static void _order(_Node *node, int height, std::vector<_Node *> &v) {
+	static void _order(_Node *node, int height, std::deque<_Node *> &v) {
     	if (height == 0) {
     		v.push_back(node);
     	} else {
@@ -266,15 +267,34 @@ public:
 	}
 
 	// 回傳現在葉子節點的順序
-	std::vector<_Node *> order() {
-		std::vector<_Node *> ret;
+	std::deque<_Node *> order() {
+		std::deque<_Node *> ret;
 		_order(root, height, ret);
 		return ret;
 	}
 
 	// 從 nodes 重建新樹，這些節點將緊密位於新樹左側
-	OrderTree *rebuild(std::vector<_Node *> nodes) {
-
+	OrderTree *rebuild(std::deque<_Node *> nodes) {
+		auto tree = this->new_tree();
+		tree->cursor = nodes.size();
+		// 每個迴圈搞定一層
+		for (int h = 0; h < height; h++) {
+			int num = nodes.size();
+			for (int i = 0; i + 1 < num; i += 2) {
+				_Node *parent = new _Node();
+				parent->children[0] = nodes.front(); nodes.pop_front();
+				parent->children[1] = nodes.front(); nodes.pop_front();
+				nodes.push_back(parent);
+			}
+			if (num % 2 == 1) {
+				_Node *parent = new _Node();
+				parent->children[0] = nodes.front(); nodes.pop_front();
+				parent->children[1] = nullptr;
+				nodes.push_back(parent);
+			}
+		}
+		tree->root = nodes[0];
+		return tree;
 	}
 
 	// 創建一個新的樹，若 cursor 已滿，會將所有節點緊密併到新樹左側
@@ -285,6 +305,8 @@ public:
 
 		if (new_tree->cursor == 1 << this->height) {
 			printf("滿了！！！！！！！！！\n");
+			auto order = new_tree->order();
+			new_tree = rebuild(order);
 			return GetRet<Key, Value> {
 					new_tree,
 					ret.second,
