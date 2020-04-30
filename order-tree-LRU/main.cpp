@@ -20,16 +20,21 @@ int main() {
     auto ret = order_tree->get(nodes[0]);
     order_tree = ret.new_tree;
     order_tree->show();
+	order_tree->show_order();
 
     ret = order_tree->get(nodes[1]);
     order_tree = ret.new_tree;
     order_tree->show();
+	order_tree->show_order();
 
     ret = order_tree->get(nodes[2]);
     order_tree = ret.new_tree;
     order_tree->show();
+	order_tree->show_order();
 
     ret = order_tree->get(nodes[3]);
     order_tree = ret.new_tree;
     order_tree->show();
+	order_tree->show_order();
+
 }

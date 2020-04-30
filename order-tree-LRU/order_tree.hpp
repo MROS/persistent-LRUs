@@ -63,6 +63,19 @@ private:
 	static _Node *createFullTree(int height, std::vector<_KeyValue> &kvs) {
 		return _createFullTree(height, 0, kvs);
 	}
+	// 將 node 底下的葉子塞入 v 中。是 order 的輔助函數
+	static void _order(_Node *node, int height, std::vector<_Node *> &v) {
+    	if (height == 0) {
+    		v.push_back(node);
+    	} else {
+    		if (node->children[0] != nullptr) {
+    			_order(node->children[0], height - 1, v);
+    		}
+			if (node->children[1] != nullptr) {
+				_order(node->children[1], height - 1, v);
+			}
+		}
+	}
 	static void _show(_Node *node, int height) {
 		if (node == nullptr) {
 			for (int i = 0; i < (1 << height); i++) {
@@ -102,6 +115,15 @@ public:
 	void show() {
 		_show(this->root, this->height);
 		printf("\n");
+	}
+
+	// 打印有東西的葉子順序
+	void show_order() {
+		printf("order: ");
+		for (auto node: this->order()) {
+			printf("(%d, %d)", node->key, node->value);
+		}
+		puts("");
 	}
 
     // 創建一個新的樹，新增一個節點到當前 cursor 位置，其值爲 value
@@ -244,7 +266,16 @@ public:
 	}
 
 	// 回傳現在葉子節點的順序
-	std::vector<_KeyValue> *order(_Node *node);
+	std::vector<_Node *> order() {
+		std::vector<_Node *> ret;
+		_order(root, height, ret);
+		return ret;
+	}
+
+	// 從 nodes 重建新樹，這些節點將緊密位於新樹左側
+	OrderTree *rebuild(std::vector<_Node *> nodes) {
+
+	}
 
 	// 創建一個新的樹，若 cursor 已滿，會將所有節點緊密併到新樹左側
 	// 否則，node 將被移到當前 cursor 位置
@@ -269,6 +300,7 @@ public:
 	}
 
 	// 創建一個新的樹， node 的值被修改爲 value ，並且 node 將被移到當前 cursor 位置
+	// XXX: 函數簽名應爲 put(Value value)
 	std::pair<OrderTree*, _Node*> put(_Node *node, Value value) {
 		auto ret = change_value(node, value);
 		auto tree = ret.first;
@@ -276,6 +308,4 @@ public:
 		auto new_node = ret.second;
 		return tree->to_head(new_node);
 	}
-
-    OrderTree* update(_Node *node, Value value);
 };

@@ -31,12 +31,12 @@ public:
 		if (node == nullptr) {
 			return make_pair(this, std::nullopt);
 		}
-		auto new_tree = order_tree->to_head(node);
+		auto get_ret = order_tree->get(node);
 		auto new_cache = new OrderTreeLRU<Key, Value>();
 		new_cache->capacity = capacity;
 		new_cache->used = used;
-		new_cache->order_tree = new_tree.first;
-		new_cache->map = this->map.set(key, new_tree.second);
+		new_cache->order_tree = get_ret.new_tree;
+		new_cache->map = this->map.set(key, get_ret.new_node);
 
 		return make_pair(new_cache, node->value);
 	}
