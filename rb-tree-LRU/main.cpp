@@ -6,12 +6,20 @@ using namespace std;
 
 int main() {
     IDPair<string, int> id_pair { "ggg", 9999 };
-    Node<IDPair<string, int>> node(Color::B, 123, id_pair);
-    auto a = node.get_entry(123);
+    auto root = make_shared<Node<IDPair<string, int>>>(Color::B, 123, id_pair);
+    auto a = root->get_entry(123);
     if (a.has_value()) {
-        cout << a->get()->key << endl;
+        cout << a->get()->value.id << endl;
     } else {
         cout << "找不到" << endl;
     }
-    node.balance();
+
+    Node<IDPair<string, int>>::insert(&root, 23, id_pair, true);
+    Node<IDPair<string, int>>::insert(&root, 3, id_pair, true);
+    Node<IDPair<string, int>>::insert(&root, 1, id_pair, true);
+
+    cout << root->debug() << endl;
+    cout << root->left->debug() << endl;
+    cout << root->right->debug() << endl;
+    cout << root->left->left->debug() << endl;
 }

@@ -28,18 +28,22 @@ struct Entry {
 
 template<typename T>
 class Node {
-private:
+public:
 	shared_ptr<Entry<T>> entry;
 	Color color;
 	shared_ptr<Node> right = {};
 	shared_ptr<Node> left = {};
 
-public:
+	string debug() {
+		string color_str{this->color == Color::B ? "黑" : "紅"};
+		return "NODE: color: " + color_str + ", key: " + to_string(this->entry->key);
+	}
+
 	Node(Color color, int key, const T &value) : entry(nullptr), color(color) {
 		Entry<T> entry = { key, value };
 		this->entry = make_shared<Entry<T>>(entry);
 	}
-	
+
 	optional<Color> left_color() const {
 		return this->left != nullptr ? this->left->color : optional<Color>{};
 	}
@@ -153,4 +157,27 @@ public:
 			this->left = node_r_ptr;
 		}
 	}
+    static bool insert(shared_ptr<Node<T>> *shared_ptr_node, int key, const T &value, bool is_root) {
+		if (shared_ptr_node->get() != nullptr) {
+			auto node = make_mut(shared_ptr_node);
+			if (key < node->entry->key) {
+				Node::insert(&node->left, key, value, false);
+				node->balance();
+			} else if (key > node->entry->key) {
+				Node::insert(&node->right, key, value, false);
+				node->balance();
+			} else {
+				throw "插入重複的 key 了！";
+			}
+			if (is_root) {
+				node->color = Color::B;
+			}
+		} else {
+			auto color = Color::R;
+			if (is_root) {
+				color = Color::B;
+			}
+			*shared_ptr_node = make_shared<Node<T>>(color, key, value);
+		}
+    }
 };
