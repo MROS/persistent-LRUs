@@ -1,5 +1,6 @@
 #include <stdio.h>
 #include <unordered_map>
+#include "../LRU.h"
 
 struct Node {
     Node *next, *last;
