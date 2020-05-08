@@ -38,31 +38,28 @@ public:
 		Node<IDPair<ID, V>>::insert(&this->root_, key, pair, true, [this](auto node) {
 			this->map_ = this->map_.set(node->get()->entry->value.id, node);
 		});
-		// TODO: 插入剛才新加的節點
 	}
-	void remove(int key) {
+	void remove(shared_ptr<Node<IDPair<ID, V>>> *node) {
 		if (freeze_) {
 			throw "嘗試刪除一棵已凍結之紅黑樹的元素";
 		}
 		this->size_ -= 1;
-		// TODO:
+
+		bool is_root = false;
+		if (node->get() == this->root_.get()) {
+			is_root = true;
+		}
+		this->map_ = this->map_.erase(node->get()->entry->value.id);
+		Node<IDPair<ID, V>>::remove(node, node->get()->entry->key, is_root, [this](auto node) {
+			this->map_ = this->map_.set(node->get()->entry->value.id, node);
+		});
 	}
 	void remove_least() {
-		if (freeze_) {
-			throw "嘗試刪除一棵已凍結之紅黑樹對最小元素";
-		}
 		if (this->root_ == nullptr) {
 			throw "嘗試刪除空紅黑樹的最小元素";
 		}
-		this->size_ -= 1;
 		auto least_node = Node<IDPair<ID, V>>::get_least(this->root_);
-		bool is_root = false;
-		if (least_node->get() == this->root_.get()) {
-			is_root = true;
-		}
-		Node<IDPair<ID, V>>::remove(least_node, least_node->get()->entry->key, is_root, [this](auto node) {
-			this->map_ = this->map_.erase(node->get()->entry->value.id);
-		});
+		this->remove(least_node);
 	}
 	shared_ptr<Node<IDPair<ID, V>>> *find_by_id(const ID &id) {
 		return this->map_[id];
