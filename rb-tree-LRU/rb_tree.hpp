@@ -1,7 +1,7 @@
 #pragma once
 #include "node.hpp"
 
-// #include <immer/map.hpp>
+#include <immer/map.hpp>
 
 template<typename ID, typename V>
 struct IDPair {
@@ -16,12 +16,12 @@ private:
 	shared_ptr<Node<IDPair<ID, V>>> root_ = nullptr;
 	size_t size_ = 0;
 	bool freeze_ = false;
+    immer::map<ID, shared_ptr<Node<IDPair<ID, V>>> *> map_;
+	RedBlackTree(immer::map<ID, shared_ptr<Node<IDPair<ID, V>>> *> map): map_(map) { }
 public:
-	RedBlackTree() {
-		// TODO: 初始化雜湊表
-	}
+	RedBlackTree() { }
 	RedBlackTree clone_and_freeze() {
-		RedBlackTree<ID, V> new_tree{};
+		RedBlackTree<ID, V> new_tree{ this->map_ };
 		if (this->root_ != nullptr) {
 			new_tree.root_ = this->root_->clone();
 		}
@@ -35,9 +35,10 @@ public:
 		}
 		this->size_ += 1;
 		IDPair<ID, V> pair = { id, value };
-		Node<IDPair<ID, V>>::insert(&this->root_, key, pair, true, [](auto node) {
-
+		Node<IDPair<ID, V>>::insert(&this->root_, key, pair, true, [this](auto node) {
+			this->map_ = this->map_.set(node->get()->entry->value.id, node);
 		});
+		// TODO: 插入剛才新加的節點
 	}
 	void remove(int key) {
 		if (freeze_) {
@@ -59,11 +60,11 @@ public:
 		if (least_node->get() == this->root_.get()) {
 			is_root = true;
 		}
-		Node<IDPair<ID, V>>::remove(least_node, least_node->get()->entry->key, is_root, [](const Node<IDPair<ID, V>> &node) {
-
+		Node<IDPair<ID, V>>::remove(least_node, least_node->get()->entry->key, is_root, [this](auto node) {
+			this->map_ = this->map_.erase(node->get()->entry->value.id);
 		});
 	}
-	Entry<IDPair<ID, V>> *find_by_id() {
-		//
+	shared_ptr<Node<IDPair<ID, V>>> *find_by_id(const ID &id) {
+		return this->map_[id];
 	}
 };

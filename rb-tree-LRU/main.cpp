@@ -3,6 +3,10 @@
 #include <iostream>
 using namespace std;
 
+void debug_pair(const IDPair<string, float> &pair) {
+    cout << "ID: " << pair.id << ", Value: " << pair.value << endl;
+}
+
 int main() {
     try{
         string str = "ggg";
@@ -14,8 +18,8 @@ int main() {
             cout << "找不到" << endl;
         }
 
-        auto on_clone = [](const Node<string>& node) {
-            cout << "clone!! " + node.debug() << endl;
+        auto on_clone = [](shared_ptr<Node<string>>* node) {
+            cout << "clone!! " + node->get()->debug() << endl;
         };
 
         Node<string>::insert(&root, 23, str, true, on_clone);
@@ -42,7 +46,15 @@ int main() {
 
         RedBlackTree<string, float> rbtree;
         rbtree.insert(3, "aaa", 0.233);
+        auto n = rbtree.find_by_id("aaa");
+        debug_pair(n->get()->entry->value);
+
         rbtree.remove_least();
+        n = rbtree.find_by_id("aaa");
+        cout << n << endl;
+
+        rbtree.remove_least();
+
     } catch (const char * str) {
         std::cout << "Exception: " << str << std::endl;
     }

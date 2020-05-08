@@ -8,12 +8,12 @@ using namespace std;
 enum class Color { R, B };
 
 template<typename T>
-T* make_mut(shared_ptr<T> *rc, function<void(const T&)> on_clone) {
+T* make_mut(shared_ptr<T> *rc, function<void(shared_ptr<T>*)> on_clone) {
 	if (rc->use_count() > 1) {
 		// 注意：這是唯一會複製東西的地方！！
 		auto inner = *(rc->get());
-		on_clone(inner);
 		*rc = make_shared<T>(inner);
+		on_clone(rc);
 
 	}
 	return rc->get();
@@ -80,12 +80,12 @@ public:
 		}
 	}
 
-    static bool insert(
+    static void insert(
 		shared_ptr<Node<T>> *shared_ptr_node,
 		int key,
 		const T &value,
 		bool is_root,
-		function<void(const Node<T>&)> on_clone
+		function<void(shared_ptr<Node<T>>*)> on_clone
 	) {
 		if (shared_ptr_node->get() != nullptr) {
 			auto node = make_mut(shared_ptr_node, on_clone);
@@ -107,13 +107,15 @@ public:
 				color = Color::B;
 			}
 			*shared_ptr_node = make_shared<Node<T>>(color, key, value);
+			// NOTE: 把剛建出來的節點也做一次 on_clone
+			on_clone(shared_ptr_node);
 		}
     }
 	static void remove(
 		shared_ptr<Node<T>> *shared_ptr_node,
 		int key,
 		bool is_root,
-		function<void(const Node<T>&)> on_clone
+		function<void(shared_ptr<Node<T>>*)> on_clone
 	) {
 		bool make_node_none = false;
 		if (shared_ptr_node->get() != nullptr) {
@@ -139,7 +141,7 @@ public:
 	}
 
 private:
-	void balance(function<void(const Node<T>&)> on_clone) {
+	void balance(function<void(shared_ptr<Node<T>>*)> on_clone) {
 		if (this->color == Color::R) {
 			return;
 		}
@@ -222,7 +224,7 @@ private:
 		Node<T> *node,
 		shared_ptr<Node<T>> &left,
 		shared_ptr<Node<T>> &right,
-		function<void(const Node<T>&)> on_clone
+		function<void(shared_ptr<Node<T>>*)> on_clone
 	) {
 		if (left == nullptr && right == nullptr) {
 			return false;
@@ -299,7 +301,7 @@ private:
 			return true;
 		}
     }
-	void remove_balance(function<void(const Node<T>&)> on_clone) {
+	void remove_balance(function<void(shared_ptr<Node<T>>*)> on_clone) {
 		auto l_color = this->left_color();
 		auto r_color = this->right_color();
 		if (l_color == optional<Color>{Color::R} && r_color == optional<Color>{Color::R}) {
@@ -314,7 +316,7 @@ private:
 		}
     }
 	
-    void remove_balance_left(function<void(const Node<T>&)> on_clone) {
+    void remove_balance_left(function<void(shared_ptr<Node<T>>*)> on_clone) {
 		auto color_l = this->left_color();
 		auto color_r = this->right_color();
         auto color_r_l = this->right == nullptr ? optional<Color>{} : optional<Color>{this->right->left_color()};
@@ -347,7 +349,7 @@ private:
 			throw "不應走到這裡= =";
 		}
     }
-    void remove_balance_right(function<void(const Node<T>&)> on_clone) {
+    void remove_balance_right(function<void(shared_ptr<Node<T>>*)> on_clone) {
 		auto color_r = this->right_color();
 		auto color_l = this->left_color();
         auto color_l_r = this->left == nullptr ? optional<Color>{} : optional<Color>{this->left->right_color()};
@@ -381,7 +383,7 @@ private:
 		}
     }
 	
-	void del_left(int key, function<void(const Node<T>&)> on_clone) {
+	void del_left(int key, function<void(shared_ptr<Node<T>>*)> on_clone) {
 		auto original_left_color = this->left_color();
 		Node<T>::remove(&this->left, key, false, on_clone);
 		this->color = Color::R; // In case of rebalance the color does not matter.
@@ -389,7 +391,7 @@ private:
 			this->remove_balance_left(on_clone);
 		}
 	}
-	void del_right(int key, function<void(const Node<T>&)> on_clone) {
+	void del_right(int key, function<void(shared_ptr<Node<T>>*)> on_clone) {
 		auto original_right_color = this->right_color();
 		Node<T>::remove(&this->right, key, false, on_clone);
 		this->color = Color::R; // In case of rebalance the color does not matter.
