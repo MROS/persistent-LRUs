@@ -1,8 +1,11 @@
 #include "order_tree.hpp"
+#include "lru.hpp"
 #include <vector>
 using namespace std;
 
 int main() {
+	auto lru = OrderTreeLRU<int, int>(16);
+
     auto *order_tree = new OrderTree<int, int>(3);
     order_tree->show();
     vector<Node<int>*> nodes;

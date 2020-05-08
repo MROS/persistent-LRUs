@@ -8,16 +8,16 @@
 template<typename Key, typename Value>
 class OrderTreeLRU : public LRU<Key, Value> {
 private:
-    int capacity{};
-    int used{};
+    size_t capacity{};
+    size_t used{};
     immer::map<Key, Node<Value> *> map;
 	OrderTree<Key, Value> *order_tree{};
 
 public:
-	typedef OrderTreeLRU<Key, Value> Self;
+	typedef LRU<Key, Value> Parent;
 	typedef std::variant<Get<Key>, Put<Key, Value>> Cmd;
 
-    explicit OrderTreeLRU(int capacity) {
+    explicit OrderTreeLRU(size_t capacity) {
 		this->capacity = capacity;
 		this->used = 0;
 		int h = 0, c = capacity;
@@ -48,10 +48,10 @@ public:
 		if (node == nullptr) {
 			return std::nullopt;
 		} else {
-			return node;
+			return node->value;
 		}
 	}
-	std::shared_ptr<Self> batch_operate(std::vector<Cmd> &cmds) {
-		return std::shared_ptr<Self>();
+	std::shared_ptr<Parent> batch_operate(std::vector<Cmd> &cmds) {
+		return std::shared_ptr<Parent>();
 	}
 };
