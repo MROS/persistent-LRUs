@@ -16,8 +16,8 @@ private:
 	shared_ptr<Node<IDPair<ID, V>>> root_ = nullptr;
 	size_t size_ = 0;
 	bool freeze_ = false;
-    immer::map<ID, shared_ptr<Node<IDPair<ID, V>>> *> map_;
-	RedBlackTree(immer::map<ID, shared_ptr<Node<IDPair<ID, V>>> *> map): map_(map) { }
+    immer::map<ID, int> map_;
+	RedBlackTree(immer::map<ID, int> map): map_(map) { }
 public:
 	RedBlackTree() { }
 	RedBlackTree clone_and_freeze() {
@@ -35,9 +35,8 @@ public:
 		}
 		this->size_ += 1;
 		IDPair<ID, V> pair = { id, value };
-		Node<IDPair<ID, V>>::insert(&this->root_, key, pair, true, [this](auto node) {
-			this->map_ = this->map_.set(node->get()->entry->value.id, node);
-		});
+		Node<IDPair<ID, V>>::insert(&this->root_, key, pair, true);
+		this->map_ = this->map_.set(id, key);
 	}
 	void remove(shared_ptr<Node<IDPair<ID, V>>> *node) {
 		if (freeze_) {
@@ -50,9 +49,7 @@ public:
 			is_root = true;
 		}
 		this->map_ = this->map_.erase(node->get()->entry->value.id);
-		Node<IDPair<ID, V>>::remove(node, node->get()->entry->key, is_root, [this](auto node) {
-			this->map_ = this->map_.set(node->get()->entry->value.id, node);
-		});
+		Node<IDPair<ID, V>>::remove(node, node->get()->entry->key, is_root);
 	}
 	void remove_least() {
 		if (this->root_ == nullptr) {
@@ -62,6 +59,7 @@ public:
 		this->remove(least_node);
 	}
 	shared_ptr<Node<IDPair<ID, V>>> *find_by_id(const ID &id) {
-		return this->map_[id];
+		auto key = this->map_[id];
+		return Node<IDPair<ID, V>>::get_node(this->root_, key);
 	}
 };
