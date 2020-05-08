@@ -1,6 +1,5 @@
 #include "node.hpp"
 #include "rb_tree.hpp"
-#include <vector>
 #include <iostream>
 using namespace std;
 
