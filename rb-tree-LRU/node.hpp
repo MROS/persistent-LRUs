@@ -59,21 +59,24 @@ public:
 	optional<Color> right_color() const {
 		return this->right != nullptr ? this->right->color : optional<Color>{};
 	}
-	shared_ptr<Entry<T>> get_entry(int key) const { // 要怎麼回傳 Option<&T> 啊 =_=
-		if (key > this->entry->key) {
-			if (this->right != nullptr) {
-				return this->right->get_entry(key);
+	static shared_ptr<Node<T>>* get_least(shared_ptr<Node<T>>& node) {
+		return node->left != nullptr ? Node<T>::get_least(node->left) : &node;
+	}
+	static shared_ptr<Node<T>> *get_node(shared_ptr<Node<T>>& node, int key) { // 要怎麼回傳 Option<&T> 啊 =_=
+		if (key > node->entry->key) {
+			if (node->right != nullptr) {
+				return Node<T>::get_node(node->right, key);
 			} else {
 				return nullptr;
 			}
-		} else if (key < this->entry->key) {
-			if (this->left != nullptr) {
-				return this->left->get_entry(key);
+		} else if (key < node->entry->key) {
+			if (node->left != nullptr) {
+				return Node<T>::get_node(node->left, key);
 			} else {
 				return nullptr;
 			}
 		} else {
-			return this->entry;
+			return &node;
 		}
 	}
 

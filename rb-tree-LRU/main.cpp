@@ -7,9 +7,9 @@ int main() {
     try{
         string str = "ggg";
         auto root = make_shared<Node<string>>(Color::B, 123, str);
-        auto a = root->get_entry(123);
+        auto a = Node<string>::get_node(root, 123);
         if (a != nullptr) {
-            cout << a->value << endl;
+            cout << a->get()->entry->value << endl;
         } else {
             cout << "找不到" << endl;
         }
@@ -39,6 +39,10 @@ int main() {
         cout << root2->left->debug() << endl;
         cout << root2->right->debug() << endl;
         cout << root2->right->left->debug() << endl;
+
+        RedBlackTree<string, float> rbtree;
+        rbtree.insert(3, "aaa", 0.233);
+        rbtree.remove_least();
     } catch (const char * str) {
         std::cout << "Exception: " << str << std::endl;
     }
