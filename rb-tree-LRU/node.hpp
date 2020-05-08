@@ -37,95 +37,6 @@ struct Entry {
 
 template<typename T>
 class Node {
-private:
-	void balance(function<void(const Node<T>&)> on_clone) {
-		if (this->color == Color::R) {
-			return;
-		}
-		auto color_l = this->left_color();
-		auto color_l_l = this->left != nullptr ? this->left->left_color() : optional<Color>{};
-		auto color_l_r = this->left != nullptr ? this->left->right_color() : optional<Color>{};
-		auto color_r = this->right_color();
-		auto color_r_l = this->right != nullptr ? this->right->left_color() : optional<Color>{};
-		auto color_r_r = this->right != nullptr ? this->right->right_color() : optional<Color>{};
-
-		if (color_l == optional{Color::R} && color_l_l == optional{Color::R}) {
-			shared_ptr<Node<T>> node_l_ptr = this->left;
-			this->left = nullptr;
-			Node<T> *node_l = make_mut(&node_l_ptr, on_clone);
-			shared_ptr<Node<T>> node_l_l_ptr = node_l->left;
-			node_l->left = nullptr;
-			Node<T> *node_l_l = make_mut(&node_l_l_ptr, on_clone);
-
-			this->color = Color::R;
-			node_l->color = Color::B;
-			node_l_l->color = Color::B;
-
-			this->entry.swap(node_l->entry);
-			node_l->left.swap(node_l->right);
-			this->right.swap(node_l->right);
-			
-			this->left = node_l_l_ptr;
-			this->right = node_l_ptr;
-		} else if (color_l == optional{Color::R} && color_l_r == optional{Color::R}) {
-			shared_ptr<Node<T>> node_l_ptr = this->left;
-			this->left = nullptr;
-			Node<T> *node_l = make_mut(&node_l_ptr, on_clone);
-			shared_ptr<Node<T>> node_l_r_ptr = node_l->right;
-			node_l->right = nullptr;
-			Node<T> *node_l_r = make_mut(&node_l_r_ptr, on_clone);
-
-			this->color = Color::R;
-			node_l->color = Color::B;
-			node_l_r->color = Color::B;
-
-			this->entry.swap(node_l_r->entry);
-			node_l_r->left.swap(node_l_r->right);
-			node_l->right.swap(node_l_r->right);
-			this->right.swap(node_l_r->right);
-
-			this->right = node_l_r_ptr;
-			this->left = node_l_ptr;
-		} else if (color_r == optional{Color::R} && color_r_l == optional{Color::R}) {
-			shared_ptr<Node<T>> node_r_ptr = this->right;
-			this->right = nullptr;
-			Node<T> *node_r = make_mut(&node_r_ptr, on_clone);
-			shared_ptr<Node<T>> node_r_l_ptr = node_r->left;
-			node_r->left = nullptr;
-			Node<T> *node_r_l = make_mut(&node_r_l_ptr, on_clone);
-
-			this->color = Color::R;
-			node_r->color = Color::B;
-			node_r_l->color = Color::B;
-
-			this->entry.swap(node_r_l->entry);
-			node_r->left.swap(node_r_l->right);
-			node_r_l->left.swap(node_r_l->right);
-			this->left.swap(node_r_l->left);
-
-			this->left = node_r_l_ptr;
-			this->right = node_r_ptr;
-		} else if (color_r == optional{Color::R} && color_r_r == optional{Color::R}) {
-			shared_ptr<Node<T>> node_r_ptr = this->right;
-			this->right = nullptr;
-			Node<T> *node_r = make_mut(&node_r_ptr, on_clone);
-			shared_ptr<Node<T>> node_r_r_ptr = node_r->right;
-			node_r->right = nullptr;
-			Node<T> *node_r_r = make_mut(&node_r_r_ptr, on_clone);
-
-			this->color = Color::R;
-			node_r->color = Color::B;
-			node_r_r->color = Color::B;
-
-			this->entry.swap(node_r->entry);
-			node_r->left.swap(node_r->right);
-			this->left.swap(node_r->left);
-
-			this->right = node_r_r_ptr;
-			this->left = node_r_ptr;
-		}
-	}
-
 public:
 	shared_ptr<Entry<T>> entry;
 	Color color;
@@ -198,10 +109,119 @@ public:
 			*shared_ptr_node = make_shared<Node<T>>(color, key, value);
 		}
     }
-	bool remove_fuse(
+	static void remove(
+		shared_ptr<Node<T>> *shared_ptr_node,
+		int key,
+		bool is_root,
+		function<void(const Node<T>&)> on_clone
+	) {
+		bool make_node_none = false;
+		if (shared_ptr_node->get() != nullptr) {
+			auto node = make_mut(shared_ptr_node, on_clone);
+			if (key > node->entry->key) {
+				node->del_right(key, on_clone);
+			} else if (key < node->entry->key) {
+				node->del_left(key, on_clone);
+			} else {
+				auto left = take(&node->left);
+				auto right = take(&node->right);
+				make_node_none = !Node<T>::remove_fuse(node, left, right, on_clone);
+			}
+			if (is_root) {
+				node->color = Color::B;
+			}
+		} else {
+			throw "移除時找不到節點";
+		}
+		if (make_node_none) {
+			*shared_ptr_node = nullptr;
+		}
+	}
+
+private:
+	void balance(function<void(const Node<T>&)> on_clone) {
+		if (this->color == Color::R) {
+			return;
+		}
+		auto color_l = this->left_color();
+		auto color_l_l = this->left != nullptr ? this->left->left_color() : optional<Color>{};
+		auto color_l_r = this->left != nullptr ? this->left->right_color() : optional<Color>{};
+		auto color_r = this->right_color();
+		auto color_r_l = this->right != nullptr ? this->right->left_color() : optional<Color>{};
+		auto color_r_r = this->right != nullptr ? this->right->right_color() : optional<Color>{};
+
+		if (color_l == optional{Color::R} && color_l_l == optional{Color::R}) {
+			auto node_l_ptr = take(&this->left);
+			Node<T> *node_l = make_mut(&node_l_ptr, on_clone);
+			auto node_l_l_ptr = take(&node_l->left);
+			Node<T> *node_l_l = make_mut(&node_l_l_ptr, on_clone);
+
+			this->color = Color::R;
+			node_l->color = Color::B;
+			node_l_l->color = Color::B;
+
+			this->entry.swap(node_l->entry);
+			node_l->left.swap(node_l->right);
+			this->right.swap(node_l->right);
+			
+			this->left = node_l_l_ptr;
+			this->right = node_l_ptr;
+		} else if (color_l == optional{Color::R} && color_l_r == optional{Color::R}) {
+			auto node_l_ptr = take(&this->left);
+			Node<T> *node_l = make_mut(&node_l_ptr, on_clone);
+			auto node_l_r_ptr = take(&node_l->right);
+			Node<T> *node_l_r = make_mut(&node_l_r_ptr, on_clone);
+
+			this->color = Color::R;
+			node_l->color = Color::B;
+			node_l_r->color = Color::B;
+
+			this->entry.swap(node_l_r->entry);
+			node_l_r->left.swap(node_l_r->right);
+			node_l->right.swap(node_l_r->right);
+			this->right.swap(node_l_r->right);
+
+			this->right = node_l_r_ptr;
+			this->left = node_l_ptr;
+		} else if (color_r == optional{Color::R} && color_r_l == optional{Color::R}) {
+			auto node_r_ptr = take(&this->right);
+			Node<T> *node_r = make_mut(&node_r_ptr, on_clone);
+			auto node_r_l_ptr = take(&node_r->left);
+			Node<T> *node_r_l = make_mut(&node_r_l_ptr, on_clone);
+
+			this->color = Color::R;
+			node_r->color = Color::B;
+			node_r_l->color = Color::B;
+
+			this->entry.swap(node_r_l->entry);
+			node_r->left.swap(node_r_l->right);
+			node_r_l->left.swap(node_r_l->right);
+			this->left.swap(node_r_l->left);
+
+			this->left = node_r_l_ptr;
+			this->right = node_r_ptr;
+		} else if (color_r == optional{Color::R} && color_r_r == optional{Color::R}) {
+			auto node_r_ptr = take(&this->right);
+			Node<T> *node_r = make_mut(&node_r_ptr, on_clone);
+			auto node_r_r_ptr = take(&node_r->right);
+			Node<T> *node_r_r = make_mut(&node_r_r_ptr, on_clone);
+
+			this->color = Color::R;
+			node_r->color = Color::B;
+			node_r_r->color = Color::B;
+
+			this->entry.swap(node_r->entry);
+			node_r->left.swap(node_r->right);
+			this->left.swap(node_r->left);
+
+			this->right = node_r_r_ptr;
+			this->left = node_r_ptr;
+		}
+	}
+	static bool remove_fuse(
 		Node<T> *node,
-		shared_ptr<Node<T>> left,
-		shared_ptr<Node<T>> right,
+		shared_ptr<Node<T>> &left,
+		shared_ptr<Node<T>> &right,
 		function<void(const Node<T>&)> on_clone
 	) {
 		if (left == nullptr && right == nullptr) {
@@ -211,102 +231,170 @@ public:
 			return true;
 		} else if (left != nullptr && right == nullptr) {
 			*node = *left;
+			return true;
 		} else {
-			if (left->color() == Color::B && right->color() == Color::R) {
+			if (left->color == Color::B && right->color == Color::R) {
 				auto r = make_mut(&right, on_clone);
 				auto rl = take(&r->left);
-
 				// This will always return `true`.
-				Node<T>::remove_fuse(node, left, rl);
+				Node<T>::remove_fuse(node, left, rl, on_clone);
+				swap(*node, *r);
+				node->left = right;
+			} else if (left->color == Color::R && right->color == Color::B) {
+				auto l = make_mut(&left, on_clone);
+				auto lr = take(&l->right);
+				// This will always return `true`.
+				Node<T>::remove_fuse(node, lr, right, on_clone);
+				swap(*node, *l);
+				node->right = left;
+			} else if (left->color == Color::R && right->color == Color::R) {
+                auto r = make_mut(&right, on_clone);
+				auto rl = take(&r->left);
+                auto l = make_mut(&left, on_clone);
+                auto lr = take(&l->right);
+				auto fused = Node<T>::remove_fuse(node, lr, rl, on_clone);
+				if (node->color == Color::R) {
+					if (fused) {
+						auto fl = take(&node->left);
+						auto fr = take(&node->right);
+						l->right = fl;
+						r->left = fr;
+						node->left = left;
+						node->right = right;
+					}
+				} else {
+					swap(*node, *l);
+					if (fused) {
+						r->left = left;
+					}
+					node->right = right;
+				}
+			} else if (left->color == Color::B && right->color == Color::B) {
+                auto r = make_mut(&right, on_clone);
+				auto rl = take(&r->left);
+                auto l = make_mut(&left, on_clone);
+                auto lr = take(&l->right);
+				auto fused = Node<T>::remove_fuse(node, lr, rl, on_clone);
+				if (node->color == Color::R) {
+					if (fused) {
+						auto fl = take(&node->left);
+						auto fr = take(&node->right);
+						l->right = fl;
+						r->left = fr;
+						node->left = left;
+						node->right = right;
+					}
+				} else {
+					swap(*node, *l);
+					if (fused) {
+						r->left = left;
+					}
+					node->right = right;
 
-				// swap(node, r);
-
-				// node.left = Some(r_ptr);
+					node->color = Color::R;
+					node->right = right;
+					node->remove_balance_left(on_clone);
+				}
 			}
+			return true;
 		}
-        // match (left, right) {
-        //     (Some(mut l_ptr), Some(mut r_ptr)) => {
-        //         match (l_ptr.color, r_ptr.color) {
-        //             (B, R) => {
-        //             }
-        //             (R, B) => {
-        //                 let l = SharedPointer::make_mut(&mut l_ptr);
-        //                 let lr = l.right.take();
-
-        //                 // This will always return `true`.
-        //                 Node::remove_fuse(node, lr, Some(r_ptr));
-
-        //                 swap(node, l);
-
-        //                 node.right = Some(l_ptr);
-        //             }
-        //             (R, R) => {
-        //                 let r = SharedPointer::make_mut(&mut r_ptr);
-        //                 let rl = r.left.take();
-        //                 let l = SharedPointer::make_mut(&mut l_ptr);
-        //                 let lr = l.right.take();
-
-        //                 let fused = Node::remove_fuse(node, lr, rl);
-
-        //                 match node.color {
-        //                     R if fused => {
-        //                         let fl = node.left.take();
-        //                         let fr = node.right.take();
-
-        //                         l.right = fl;
-        //                         r.left = fr;
-
-        //                         node.left = Some(l_ptr);
-        //                         node.right = Some(r_ptr);
-        //                     }
-        //                     _ => {
-        //                         swap(l, node);
-
-        //                         if fused {
-        //                             r.left = Some(l_ptr);
-        //                         }
-
-        //                         node.right = Some(r_ptr);
-        //                     }
-        //                 }
-        //             }
-        //             (B, B) => {
-        //                 let r = SharedPointer::make_mut(&mut r_ptr);
-        //                 let rl = r.left.take();
-        //                 let l = SharedPointer::make_mut(&mut l_ptr);
-        //                 let lr = l.right.take();
-
-        //                 let fused = Node::remove_fuse(node, lr, rl);
-
-        //                 match node.color {
-        //                     R if fused => {
-        //                         let fl = node.left.take();
-        //                         let fr = node.right.take();
-
-        //                         l.right = fl;
-        //                         r.left = fr;
-
-        //                         node.left = Some(l_ptr);
-        //                         node.right = Some(r_ptr);
-        //                     }
-        //                     _ => {
-        //                         swap(l, node);
-
-        //                         if fused {
-        //                             r.left = Some(l_ptr);
-        //                         }
-
-        //                         node.color = Color::Red;
-        //                         node.right = Some(r_ptr);
-
-        //                         node.remove_balance_left();
-        //                     }
-        //                 }
-        //             }
-        //         };
-
-        //         true
-        //     }
-        // }
     }
+	void remove_balance(function<void(const Node<T>&)> on_clone) {
+		auto l_color = this->left_color();
+		auto r_color = this->right_color();
+		if (l_color == optional<Color>{Color::R} && r_color == optional<Color>{Color::R}) {
+			make_mut(&this->left, on_clone)->color = Color::B;
+			make_mut(&this->right, on_clone)->color = Color::B;
+			this->color = Color::R;
+		} else {
+			if (this->color != Color::B) {
+				throw "不是黑色";
+			}
+			this->balance(on_clone);
+		}
+    }
+	
+    void remove_balance_left(function<void(const Node<T>&)> on_clone) {
+		auto color_l = this->left_color();
+		auto color_r = this->right_color();
+        auto color_r_l = this->right == nullptr ? optional<Color>{} : optional<Color>{this->right->left_color()};
+
+		if (color_l == optional<Color>{Color::R}) {
+			auto self_l = make_mut(&this->left, on_clone);
+			this->color = Color::R;
+			self_l->color = Color::B;
+		} else if (color_r == optional<Color>{Color::B}) {
+			auto self_r = make_mut(&this->right, on_clone);
+			this->color = Color::B;
+			self_r->color = Color::R;
+			this->remove_balance(on_clone);
+		} else if (color_r == optional<Color>{Color::R} && color_r_l == optional<Color>{Color::B}) {
+			auto self_r = make_mut(&this->right, on_clone);
+			auto self_r_l_ptr = take(&self_r->left);
+			auto self_r_l = make_mut(&self_r_l_ptr, on_clone);
+			auto new_r_l = take(&self_r_l->right);
+
+			self_r->color = Color::B;
+			self_r->left = new_r_l;
+			make_mut(&self_r->right, on_clone)->color = Color::R;
+			self_r->remove_balance(on_clone);
+			this->color = Color::R;
+			self_r_l->right = take(&self_r_l->left);
+			self_r_l->left = take(&this->left);
+			swap(this->entry, self_r_l->entry);
+			this->left = self_r_l_ptr;
+		} else {
+			throw "不應走到這裡= =";
+		}
+    }
+    void remove_balance_right(function<void(const Node<T>&)> on_clone) {
+		auto color_r = this->right_color();
+		auto color_l = this->left_color();
+        auto color_l_r = this->left == nullptr ? optional<Color>{} : optional<Color>{this->left->right_color()};
+
+		if (color_r == optional<Color>{Color::R}) {
+			auto self_r = make_mut(&this->right, on_clone);
+			this->color = Color::R;
+			self_r->color = Color::B;
+		} else if (color_l == optional<Color>{Color::B}) {
+			auto self_l = make_mut(&this->left, on_clone);
+			this->color = Color::B;
+			self_l->color = Color::R;
+			this->remove_balance(on_clone);
+		} else if (color_l == optional<Color>{Color::R} && color_l_r == optional<Color>{Color::B}) {
+			auto self_l = make_mut(&this->left, on_clone);
+			auto self_l_r_ptr = take(&self_l->right);
+			auto self_l_r = make_mut(&self_l_r_ptr, on_clone);
+			auto new_l_r = take(&self_l_r->left);
+
+			self_l->color = Color::B;
+			self_l->left = new_l_r;
+			make_mut(&self_l->left, on_clone)->color = Color::R;
+			self_l->remove_balance(on_clone);
+			this->color = Color::R;
+			self_l_r->left = take(&self_l_r->right);
+			self_l_r->right = take(&this->right);
+			swap(this->entry, self_l_r->entry);
+			this->right = self_l_r_ptr;
+		} else {
+			throw "不應走到這裡= =";
+		}
+    }
+	
+	void del_left(int key, function<void(const Node<T>&)> on_clone) {
+		auto original_left_color = this->left_color();
+		Node<T>::remove(&this->left, key, false, on_clone);
+		this->color = Color::R; // In case of rebalance the color does not matter.
+		if (original_left_color == optional<Color>{Color::B}) {
+			this->remove_balance_left(on_clone);
+		}
+	}
+	void del_right(int key, function<void(const Node<T>&)> on_clone) {
+		auto original_right_color = this->right_color();
+		Node<T>::remove(&this->right, key, false, on_clone);
+		this->color = Color::R; // In case of rebalance the color does not matter.
+		if (original_right_color == optional<Color>{Color::B}) {
+			this->remove_balance_right(on_clone);
+		}
+	}
 };
