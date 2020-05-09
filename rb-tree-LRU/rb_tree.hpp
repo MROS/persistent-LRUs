@@ -38,25 +38,22 @@ public:
 		Node<IDPair<ID, V>>::insert(&this->root_, key, pair, true);
 		this->map_ = this->map_.set(id, key);
 	}
-	void remove(shared_ptr<Node<IDPair<ID, V>>> *node) {
+	void remove(ID id) {
 		if (freeze_) {
 			throw "嘗試刪除一棵已凍結之紅黑樹的元素";
 		}
 		this->size_ -= 1;
 
-		bool is_root = false;
-		if (node->get() == this->root_.get()) {
-			is_root = true;
-		}
-		this->map_ = this->map_.erase(node->get()->entry->value.id);
-		Node<IDPair<ID, V>>::remove(node, node->get()->entry->key, is_root);
+		this->map_ = this->map_.erase(id);
+		auto node = this->find_by_id(id)->get();
+		Node<IDPair<ID, V>>::remove(&this->root_, node->entry->key, true);
 	}
 	void remove_least() {
 		if (this->root_ == nullptr) {
 			throw "嘗試刪除空紅黑樹的最小元素";
 		}
-		auto least_node = Node<IDPair<ID, V>>::get_least(this->root_);
-		this->remove(least_node);
+		auto least_node = Node<IDPair<ID, V>>::get_least(this->root_)->get();
+		this->remove(least_node->entry->value.id);
 	}
 	shared_ptr<Node<IDPair<ID, V>>> *find_by_id(const ID &id) {
 		auto key = this->map_[id];
