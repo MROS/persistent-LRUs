@@ -9,7 +9,6 @@ private:
     int capacity{};
 	RedBlackTree<Key, Value> rb_tree{};
 public:
-	typedef RBTreeLRU<Key, Value> Self;
 	typedef std::variant<Get<Key>, Put<Key, Value>> Cmd;
 
     explicit RBTreeLRU(int capacity) {
@@ -25,7 +24,7 @@ public:
 			return node->get()->entry->value.value;
 		}
 	}
-	std::shared_ptr<Self> batch_operate(std::vector<Cmd> &cmds) {
-		return std::shared_ptr<Self>();
+	std::shared_ptr<LRU<Key, Value>> batch_operate(std::vector<Cmd> &cmds) {
+		return nullptr;
 	}
 };

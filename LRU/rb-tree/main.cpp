@@ -52,9 +52,9 @@ int main() {
 
         rbtree.remove_least();
 
-        // RBTreeLRU<string, float> lru(100);
-        // string key{"aaa"};
-        // lru.read_only_get(key);
+        RBTreeLRU<string, float> lru(100);
+        string key{"aaa"};
+        lru.read_only_get(key);
     } catch (const char * str) {
         std::cout << "Exception: " << str << std::endl;
     }
