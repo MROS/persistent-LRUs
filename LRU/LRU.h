@@ -31,4 +31,8 @@ public:
 //	virtual std::pair<std::optional<Value>, std::shared_ptr<LRU>> get(Key &key) = 0;
 //	virtual std::shared_ptr<LRU> put(Key &key, Value &value) = 0;
 	virtual std::shared_ptr<LRU> batch_operate(std::vector<Cmd> &cmds) = 0;
+
+	void test() {
+
+	}
 };
