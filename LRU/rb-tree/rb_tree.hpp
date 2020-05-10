@@ -1,5 +1,6 @@
 #pragma once
 #include "node.hpp"
+#include <iostream>
 
 #include <immer/map.hpp>
 
@@ -20,6 +21,9 @@ private:
 	RedBlackTree(immer::map<ID, int> map): map_(map) { }
 public:
 	RedBlackTree() { }
+	int size() const {
+		return this->size_;
+	}
 	RedBlackTree clone_and_freeze() {
 		RedBlackTree<ID, V> new_tree{ this->map_ };
 		if (this->root_ != nullptr) {
@@ -44,9 +48,9 @@ public:
 		}
 		this->size_ -= 1;
 
-		this->map_ = this->map_.erase(id);
 		auto node = this->find_by_id(id)->get();
 		Node<IDPair<ID, V>>::remove(&this->root_, node->entry->key, true);
+		this->map_ = this->map_.erase(id);
 	}
 	void remove_least() {
 		if (this->root_ == nullptr) {
@@ -55,8 +59,13 @@ public:
 		auto least_node = Node<IDPair<ID, V>>::get_least(this->root_)->get();
 		this->remove(least_node->entry->value.id);
 	}
+	// TODO: 改成 find_key_by_id
 	shared_ptr<Node<IDPair<ID, V>>> *find_by_id(const ID &id) {
-		auto key = this->map_[id];
-		return Node<IDPair<ID, V>>::get_node(this->root_, key);
+		auto key = this->map_.find(id);
+		if (key == nullptr) {
+			return nullptr;
+		} else {
+			return Node<IDPair<ID, V>>::get_node(this->root_, *key);
+		}
 	}
 };

@@ -2,7 +2,10 @@
 #include "rb_tree.hpp"
 #include "lru.hpp"
 #include <iostream>
+#include <vector>
 using namespace std;
+
+typedef std::variant<Get<string>, Put<string, float>> Cmd;
 
 void debug_pair(const IDPair<string, float> &pair) {
     cout << "ID: " << pair.id << ", Value: " << pair.value << endl;
@@ -46,15 +49,27 @@ int main() {
         auto n = rbtree.find_by_id("aaa");
         debug_pair(n->get()->entry->value);
 
+        cout << "移除最小" << endl;
         rbtree.remove_least();
         n = rbtree.find_by_id("aaa");
         cout << n << endl;
 
-        rbtree.remove_least();
+        cout << "LRU" << endl;
+        shared_ptr<LRU<string, float>> lru = make_shared<RBTreeLRU<string, float>>(2);
+        vector<Cmd> cmds{Put<string, float>{ "bbb", 3.0 }, Put<string, float>{ "ccc", 4.0 }, Put<string, float>{ "ttt", 5.0 }};
+        auto next_lru = lru->batch_operate(cmds);
 
-        RBTreeLRU<string, float> lru(100);
-        string key{"aaa"};
-        lru.read_only_get(key);
+        string key {"ccc"};
+        auto t = next_lru->read_only_get(key);
+        cout << t.value() << endl;
+
+        key = "ttt";
+        t = next_lru->read_only_get(key);
+        cout << t.value() << endl;
+
+        key = "bbb";
+        t = next_lru->read_only_get(key);
+        cout << (t.has_value() ? "有值" : "無值") << endl;
     } catch (const char * str) {
         std::cout << "Exception: " << str << std::endl;
     }
