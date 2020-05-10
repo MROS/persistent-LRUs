@@ -1,36 +1,48 @@
-#include <stdio.h>
+#include <iostream>
 #include <unordered_map>
 #include "../LRU.h"
+#include <optional>
+#include <variant>
 
+template<typename Key, typename Value>
 struct Node {
     Node *next, *last;
-    int key, value;
+    Key key;
+    Value value;
     Node() {
         next = nullptr;
         last = nullptr;
     }
+    Node(Node *node) {
+		this->key = node->key;
+		this->value = node->value;
+		next = nullptr;
+		last = nullptr;
+	}
 };
 
+template<typename Key, typename Value>
 class LRUCache {
+	using _Node = Node<Key, Value>;
 private:
-    int capacity;
+    size_t capacity;
     int used;
-    std::unordered_map<int, Node*> map;
-    Node *lru_head; // 最新
-    Node *lru_tail; // 最舊
+    std::unordered_map<int, _Node*> map;
+    _Node *lru_head; // 最新
+    _Node *lru_tail; // 最舊
     void show() {
-        printf("forward: ");
-        for (Node *iter = lru_head; iter != nullptr; iter = iter->next) {
-            printf("(%d, %d)", iter->key, iter->value);
+		std::cout << "forward: ";
+		for (_Node *iter = lru_head; iter != nullptr; iter = iter->next) {
+        	std::cout << "(" << iter->key << ", " << iter->value << ")";
         }
-        printf("\n");
-        printf("backward: ");
-        for (Node *iter = lru_tail; iter != nullptr; iter = iter->last) {
-            printf("(%d, %d)", iter->key, iter->value);
+        std::cout << std::endl;
+        std::cout << "backward: ";
+        for (_Node *iter = lru_tail; iter != nullptr; iter = iter->last) {
+			std::cout << "(" << iter->key << ", " << iter->value << ")";
         }
-        printf("\n");
+		std::cout << std::endl;
     }
-    void to_head(Node *node) {
+    void to_head(_Node *node) {
         if (lru_head == lru_tail || lru_head == node) {
             // do nothing
         } else if (lru_tail == node) {
@@ -53,16 +65,46 @@ private:
         }
     }
 public:
-    LRUCache(int capacity) {
+    LRUCache(size_t capacity) {
         this->capacity = capacity;
         this->used = 0;
         lru_head = nullptr;
         lru_tail = nullptr;
     }
-    
-    
-    int get(int key) {
-        Node *node = this->map[key];
+
+    LRUCache() = default;
+
+    LRUCache copy() {
+    	LRUCache<Key, Value> new_cache(capacity);
+		new_cache.used = used;
+		auto iter = lru_head;
+		if (iter == nullptr) {
+			new_cache.lru_head = nullptr;
+			new_cache.lru_tail = nullptr;
+		} else {
+			auto new_iter = new _Node(iter);
+			new_cache.lru_head = new_iter;
+			while (iter != lru_tail) {
+				iter = iter->next;
+				new_iter->next = new _Node(iter);
+				new_iter->next->last = new_iter;
+				new_iter = new_iter->next;
+			}
+			new_cache.lru_tail = new_iter;
+		}
+    	return new_cache;
+    }
+
+	std::optional<Value> read_only_get(Key &key) {
+    	if (map.count(key)) {
+    		return map[key]->value;
+    	} else {
+    		return std::nullopt;
+    	}
+    }
+
+    Value get(Key key) {
+        _Node *node = this->map[key];
         if (node == nullptr) {
             return -1;
         }
@@ -72,10 +114,10 @@ public:
     }
     
     void put(int key, int value) {
-        Node *node = this->map[key];
+        _Node *node = this->map[key];
         if (node == nullptr) {
             if (this->used == 0) {
-                Node* node = new Node();
+                _Node* node = new _Node();
                 this->map[key] = node;
                 node->key = key;
                 node->value = value;
@@ -84,7 +126,7 @@ public:
                 lru_tail = node;
                 lru_head = node;
             } else if (this->used < this->capacity) {
-                Node *node = new Node();
+                _Node *node = new _Node();
                 this->map[key] = node;
                 node->key = key;
                 node->value = value;
@@ -94,7 +136,6 @@ public:
                 lru_head->last = node;
                 lru_head = node;
             } else {
-                // printf("put %d, %d\n", key, value);
                 this->map[lru_tail->key] = nullptr;
                 lru_tail->key = key;
                 lru_tail->value = value;
