@@ -14,17 +14,50 @@ vector<string> cases = {
 using Cmd = std::variant<Get<int>, Put<int, int>>;
 
 using BatchOp = std::vector<Cmd>;
-using ReadOblyOp = std::vector<int>;
+using ReadOnlyOp = std::vector<int>;
 
-struct TestCase {
+struct Input {
 	size_t capacity;
-	vector<variant<BatchOp, ReadOblyOp>> ops;
-	vector<vector<optional<int>>> ans;
+	vector<variant<BatchOp, ReadOnlyOp>> ops;
 };
 
-TestCase test_case(string &name) {
+using Ans = vector<vector<optional<int>>>;
+
+Ans read_ans(string &name) {
 	string dir = "test_case/";
-	TestCase ret;
+	string path = dir + name + ".out";
+	ifstream file;
+	file.open(path, ios::in);
+	if (!file) {
+		cout << "無法讀取 " << path << endl;
+	}
+	Ans ret;
+	while (!file.eof()) {
+		vector<optional<int>> ans;
+		while (true) {
+			string x;
+			getline(file, x);
+			file >> x;
+			if (x.length() == 0) {
+				break;
+			} else if (x[0] == 'n') {
+				ans.emplace_back(nullopt);
+			} else {
+				ans.emplace_back(stoi(x));
+			}
+		}
+		if (ans.size() == 0) {
+			continue;
+		}
+		ret.push_back(ans);
+	}
+	file.close();
+	return ret;
+}
+
+Input read_input(string &name) {
+	string dir = "test_case/";
+	Input ret;
 	string path = dir + name + ".in";
 	ifstream file;
 	file.open(path, ios::in);
@@ -75,27 +108,6 @@ TestCase test_case(string &name) {
 		}
 	}
 	file.close();
-
-	// 讀取 out
-	path = dir + name + ".out";
-	file.open(path, ios::in);
-	if (!file) {
-		cout << "無法讀取 " << path << endl;
-	}
-	for (auto len: rd_only_len) {
-		vector<optional<int>> ans;
-		for (int i = 0; i < len; i++) {
-			string x;
-			file >> x;
-			if (x[0] == 'n') {
-				ans.emplace_back(nullopt);
-			} else {
-				ans.emplace_back(stoi(x));
-			}
-		}
-		ret.ans.push_back(ans);
-	}
-	file.close();
 //	cout << "唯獨組數: " << ret.ans.size() << endl;
 	return ret;
 }
@@ -112,7 +124,8 @@ void test(LRU<int, int> &lru_base) {
 	for (auto name : cases) {
 
 		cout << "測試 " << name << " 開始" << endl;
-		auto tc = test_case(name);
+		auto tc = read_input(name);
+		auto ans = read_ans(name);
 
 		auto lru = lru_base.create(tc.capacity);
 
@@ -126,15 +139,12 @@ void test(LRU<int, int> &lru_base) {
 				b++;
 			} else {
 				cerr << "第 " << r << " 組" << "唯讀" << endl;
-				auto keys = get<ReadOblyOp>(op);
+				auto keys = get<ReadOnlyOp>(op);
 				for (int i = 0; i < keys.size(); i++) {
 					auto ret = lru->read_only_get(keys[i]);
-					if (ret != tc.ans[r][i]) {
+					if (ret != ans[r][i]) {
 						cerr << "第 " << r << " 組" << "唯讀的第 " << i << " 項" << ": ";
-						cerr << "正解: " << to_s(tc.ans[r][i]) << ", 輸出: " << to_s(ret) << endl;
-					} else {
-						cerr << "第 " << r << " 組" << "唯讀的第 " << i << " 項" << ": ";
-						cerr << "正解: " << to_s(tc.ans[r][i]) << ", 輸出: " << to_s(ret) << endl;
+						cerr << "正解: " << to_s(ans[r][i]) << ", 輸出: " << to_s(ret) << endl;
 					}
 				}
 				r++;
@@ -144,7 +154,41 @@ void test(LRU<int, int> &lru_base) {
 	}
 }
 
+void print_ans(LRU<int, int> &lru_base, string name) {
+
+	auto tc = read_input(name);
+
+	auto lru = lru_base.create(tc.capacity);
+
+	cerr << "輸出 " << name << " 開始" << endl;
+	int b = 0;
+	int r = 0;
+	for (auto op: tc.ops) {
+		if (get_if<BatchOp>(&op) != nullptr) {
+			cerr << "第 " << b << " 組批量操作" << endl;
+			auto batch_op = get<BatchOp>(op);
+			lru = lru->batch_operate(batch_op);
+			b++;
+		} else {
+			cerr << "第 " << r << " 組" << "唯讀" << endl;
+			auto keys = get<ReadOnlyOp>(op);
+			for (int i = 0; i < keys.size(); i++) {
+				auto ret = lru->read_only_get(keys[i]);
+				if (ret == nullopt) {
+					cout << "null" << endl;
+				} else {
+					cout << *ret << endl;
+				}
+			}
+			cout << endl;
+			r++;
+		}
+	}
+	cerr << "輸出 " << name << " 結束" << endl;
+}
 int main(int argc, char *argv[]) {
 	SimpleCopyLRU<int, int> simple_copy_lru;
-	test(simple_copy_lru);
+//	test(simple_copy_lru);
+	print_ans(simple_copy_lru, string("1"));
+	print_ans(simple_copy_lru, string("2"));
 }

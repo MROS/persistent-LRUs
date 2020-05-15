@@ -25,8 +25,8 @@ template<typename Key, typename Value>
 class LRUCache {
 	using _Node = Node<Key, Value>;
 private:
-    size_t capacity;
-    int used;
+    size_t capacity{};
+    int used{};
     std::unordered_map<Key, _Node*> map;
     _Node *lru_head; // 最新
     _Node *lru_tail; // 最舊
@@ -65,7 +65,7 @@ private:
         }
     }
 public:
-    LRUCache(size_t capacity) {
+    explicit LRUCache(size_t capacity) {
         this->capacity = capacity;
         this->used = 0;
         lru_head = nullptr;
@@ -107,12 +107,13 @@ public:
     }
 
     Value get(Key key) {
-        _Node *node = this->map[key];
-        if (node == nullptr) {
-            return -1;
+        if (!this->map.count(key)) {
+//			this->show();
+			return -1;
         }
-        this->to_head(node);
-        // this->show();
+		_Node *node = this->map[key];
+		this->to_head(node);
+//         this->show();
         return node->value;
     }
     
@@ -123,7 +124,7 @@ public:
 			this->to_head(node);
 	 	} else {
 			if (this->used == 0) {
-				_Node* node = new _Node();
+				_Node *node = new _Node();
 				this->map[key] = node;
 				node->key = key;
 				node->value = value;
@@ -149,6 +150,6 @@ public:
 				this->to_head(lru_tail);
 			}
 		}
-		// this->show();
+//		 this->show();
 	}
 };

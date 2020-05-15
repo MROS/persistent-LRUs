@@ -27,9 +27,11 @@ public:
 		for (auto &cmd : cmds) {
 			if (std::get_if<Get<Key>>(&cmd) != nullptr) {
 				Get<Key> get = std::get<Get<Key>>(cmd);
+				std::cerr << "get " << get.key << std::endl;
 				new_cache.get(get.key);
 			} else {
 				Put<Key, Value> put = std::get<Put<Key, Value>>(cmd);
+				std::cerr << "put " << put.key << " " << put.value << std::endl;
 				new_cache.put(put.key, put.value);
 			}
 		}
