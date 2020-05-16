@@ -46,13 +46,9 @@ int main() {
 
         RedBlackTree<string, float> rbtree;
         rbtree.insert(3, "aaa", 0.233);
-        auto n = rbtree.find_by_id("aaa");
-        debug_pair(n->get()->entry->value);
 
         cout << "移除最小" << endl;
         rbtree.remove_least();
-        n = rbtree.find_by_id("aaa");
-        cout << n << endl;
 
         cout << "LRU" << endl;
         shared_ptr<LRU<string, float>> lru = make_shared<RBTreeLRU<string, float>>(2);

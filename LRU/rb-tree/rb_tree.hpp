@@ -48,7 +48,7 @@ public:
 		// this->root_->print_tree();
 		// this->root_->validate(true);
 	}
-	void remove(ID id) {
+	void remove(int key, ID id) {
 		// cout << "移除" << id << "，鍵為：" << *this->map_.find(id) << endl;
 
 		if (freeze_) {
@@ -56,8 +56,7 @@ public:
 		}
 		this->size_ -= 1;
 
-		auto node = this->find_by_id(id)->get();
-		Node<IDPair<ID, V>>::remove(&this->root_, node->entry->key, true);
+		Node<IDPair<ID, V>>::remove(&this->root_, key, true);
 		this->map_ = this->map_.erase(id);
 
 		// FIXME: 條件編譯！
@@ -69,15 +68,22 @@ public:
 			throw "嘗試刪除空紅黑樹的最小元素";
 		}
 		auto least_node = Node<IDPair<ID, V>>::get_least(this->root_)->get();
-		this->remove(least_node->entry->value.id);
+		this->remove(least_node->entry->key, least_node->entry->value.id);
 	}
-	// TODO: 改成 find_key_by_id
 	shared_ptr<Node<IDPair<ID, V>>> *find_by_id(const ID &id) {
 		auto key = this->map_.find(id);
 		if (key == nullptr) {
 			return nullptr;
 		} else {
 			return Node<IDPair<ID, V>>::get_node(this->root_, *key);
+		}
+	}
+	optional<int> find_key_by_id(const ID &id) {
+		auto key = this->map_.find(id);
+		if (key == nullptr) {
+			return optional<int>{};
+		} else {
+			return optional<int>{*key};
 		}
 	}
 };
