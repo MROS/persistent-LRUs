@@ -58,10 +58,10 @@ public:
 				}
 				// TODO: batch?
 				next->rb_tree.insert(next->counter++, id, value);
+				while (next->rb_tree.size() > next->capacity) {
+					next->rb_tree.remove_least();
+				}
 			}
-		}
-		while (next->rb_tree.size() > next->capacity) {
-			next->rb_tree.remove_least();
 		}
 		return next;
 	}
