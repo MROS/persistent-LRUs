@@ -2,6 +2,7 @@
 #include <memory>
 #include <optional>
 #include <functional>
+#include <iostream>
 
 using namespace std;
 
@@ -135,6 +136,56 @@ public:
 		}
 	}
 
+	// 這個函式只有 debug 時需要！
+	int validate(bool is_root) {
+		if (is_root && this->color == Color::R) {
+			throw "根是紅色的！";
+		}
+		auto self = this->entry->key;
+		auto right_black_cnt = 0;
+		auto right = 999999999;
+		if (this->right != nullptr) {
+			right_black_cnt = this->right->validate(false);
+			right = this->right->entry->key;
+		}
+		auto left_black_cnt = 0;
+		auto left = -1;
+		if (this->left != nullptr) {
+			left_black_cnt = this->left->validate(false);
+			left = this->left->entry->key;
+		}
+
+		if (left > right) {
+			throw "左邊比右邊大";
+		} else if (left > self) {
+			throw "左邊比自己大";
+		} else if (self > right) {
+			throw "右邊比自己小";
+		}
+		// NOTE: 其實不完備……
+		
+		if (right_black_cnt != left_black_cnt) {
+			throw "黑色數量不同！";
+		}
+
+		if (this->color == Color::B) {
+			return right_black_cnt + 1;
+		}
+		return right_black_cnt;
+	}
+	void print_tree() {
+		cout << this->debug() << endl;
+		if (this->left != nullptr) {
+			this->left->print_tree();
+		} else {
+			cout << this->entry->key << " 左為空" << endl;
+		}
+		if (this->right != nullptr) {
+			this->right->print_tree();
+		} else {
+			cout << this->entry->key << " 右為空" << endl;
+		}
+	}
 private:
 	void balance() {
 		if (this->color == Color::R) {
@@ -217,8 +268,8 @@ private:
 	}
 	static bool remove_fuse(
 		Node<T> *node,
-		shared_ptr<Node<T>> &left,
-		shared_ptr<Node<T>> &right
+		shared_ptr<Node<T>> left,
+		shared_ptr<Node<T>> right
 	) {
 		if (left == nullptr && right == nullptr) {
 			return false;
@@ -249,15 +300,13 @@ private:
                 auto l = make_mut(&left);
                 auto lr = take(&l->right);
 				auto fused = Node<T>::remove_fuse(node, lr, rl);
-				if (node->color == Color::R) {
-					if (fused) {
-						auto fl = take(&node->left);
-						auto fr = take(&node->right);
-						l->right = fl;
-						r->left = fr;
-						node->left = left;
-						node->right = right;
-					}
+				if (node->color == Color::R && fused) {
+					auto fl = take(&node->left);
+					auto fr = take(&node->right);
+					l->right = fl;
+					r->left = fr;
+					node->left = left;
+					node->right = right;
 				} else {
 					swap(*node, *l);
 					if (fused) {
@@ -271,15 +320,13 @@ private:
                 auto l = make_mut(&left);
                 auto lr = take(&l->right);
 				auto fused = Node<T>::remove_fuse(node, lr, rl);
-				if (node->color == Color::R) {
-					if (fused) {
-						auto fl = take(&node->left);
-						auto fr = take(&node->right);
-						l->right = fl;
-						r->left = fr;
-						node->left = left;
-						node->right = right;
-					}
+				if (node->color == Color::R && fused) {
+					auto fl = take(&node->left);
+					auto fr = take(&node->right);
+					l->right = fl;
+					r->left = fr;
+					node->left = left;
+					node->right = right;
 				} else {
 					swap(*node, *l);
 					if (fused) {
@@ -340,7 +387,7 @@ private:
 			swap(this->entry, self_r_l->entry);
 			this->left = self_r_l_ptr;
 		} else {
-			throw "不應走到這裡= =";
+			throw "左刪除：不應走到這裡= =";
 		}
     }
     void remove_balance_right() {
@@ -364,7 +411,7 @@ private:
 			auto new_l_r = take(&self_l_r->left);
 
 			self_l->color = Color::B;
-			self_l->left = new_l_r;
+			self_l->right = new_l_r;
 			make_mut(&self_l->left)->color = Color::R;
 			self_l->remove_balance();
 			this->color = Color::R;
@@ -373,7 +420,7 @@ private:
 			swap(this->entry, self_l_r->entry);
 			this->right = self_l_r_ptr;
 		} else {
-			throw "不應走到這裡= =";
+			throw "右刪除：不應走到這裡= =";
 		}
     }
 	

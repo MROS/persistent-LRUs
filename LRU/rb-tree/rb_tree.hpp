@@ -34,6 +34,8 @@ public:
 		return new_tree;
 	}
 	void insert(int key, ID id, V value) {
+		// cout << "插入" << id << "，值為：" << value << "，鍵為：" << key << endl;
+
 		if (freeze_) {
 			throw "嘗試插入一棵已凍結之紅黑樹";
 		}
@@ -41,8 +43,14 @@ public:
 		IDPair<ID, V> pair = { id, value };
 		Node<IDPair<ID, V>>::insert(&this->root_, key, pair, true);
 		this->map_ = this->map_.set(id, key);
+
+		// FIXME: 條件編譯！
+		// this->root_->print_tree();
+		// this->root_->validate(true);
 	}
 	void remove(ID id) {
+		// cout << "移除" << id << "，鍵為：" << *this->map_.find(id) << endl;
+
 		if (freeze_) {
 			throw "嘗試刪除一棵已凍結之紅黑樹的元素";
 		}
@@ -51,6 +59,10 @@ public:
 		auto node = this->find_by_id(id)->get();
 		Node<IDPair<ID, V>>::remove(&this->root_, node->entry->key, true);
 		this->map_ = this->map_.erase(id);
+
+		// FIXME: 條件編譯！
+		// this->root_->print_tree();
+		// this->root_->validate(true);
 	}
 	void remove_least() {
 		if (this->root_ == nullptr) {
