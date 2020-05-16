@@ -1,10 +1,10 @@
-const MAX = 100;
+const MAX = 10;
 
 function rand(max=MAX) {
     return parseInt(Math.random() * max);
 }
 
-console.log(rand());
+console.log(4);
 console.log();
 
 for (let i = 0; i < 30; i++) {

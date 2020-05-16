@@ -10,7 +10,8 @@ using namespace std;
 
 vector<string> cases = {
 	"1",
-	"2"
+	"2",
+	"3"
 };
 
 using Cmd = std::variant<Get<int>, Put<int, int>>;
@@ -196,6 +197,7 @@ int main(int argc, char *argv[]) {
 //	test(simple_copy_lru);
 //	print_ans(simple_copy_lru, string("1"));
 //	print_ans(simple_copy_lru, string("2"));
+//	print_ans(simple_copy_lru, string("3"));
 	try {
 		RBTreeLRU<int, int> rb_tree_lru;
 		test(rb_tree_lru);
