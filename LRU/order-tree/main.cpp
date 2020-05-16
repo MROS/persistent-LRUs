@@ -1,14 +1,15 @@
 #include "order_tree.hpp"
 #include "lru.hpp"
 #include <vector>
+#include <memory>
 using namespace std;
 
 int main() {
-	auto lru = OrderTreeLRU<int, int>(16);
+//	auto lru = OrderTreeLRU<int, int>(16);
 
-    auto *order_tree = new OrderTree<int, int>(3);
+    auto order_tree =  make_shared<OrderTree<int, int>>(3);
     order_tree->show();
-    vector<DoublyLinkedNode<int>*> nodes;
+    vector<shared_ptr<DoublyLinkedNode<int>>> nodes;
     for (int i = 0; i < 4; i++) {
         auto ret = order_tree->add(i);
         order_tree = ret.first;
