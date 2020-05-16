@@ -5,16 +5,16 @@
 
 // NOTE: 有 enum 的話，可分成內部節點跟葉子節點
 template<typename Value>
-class Node {
+class DoublyLinkedNode {
 public:
-    Node *children[2];
+    DoublyLinkedNode *children[2];
     int key; // 作用是 debug ? TODO: 若無用，刪除之
     Value value;          // value 若爲 -1 ，表示沒有 value
     int index;          // index 若爲 -1 ，表示其爲內部節點（而非葉子節點）
-    Node() : children{nullptr, nullptr}, key(0), value(-1), index(-1) {}
-    Node(int index) : children{nullptr, nullptr}, key(0), value(-1), index(index) {}
-    Node(int index, int value) : children{nullptr, nullptr}, key(0), value(value), index(index) {}
-    Node(int index, int key, int value) : children{nullptr, nullptr}, key(key), value(value), index(index) {}
+    DoublyLinkedNode() : children{nullptr, nullptr}, key(0), value(-1), index(-1) {}
+    DoublyLinkedNode(int index) : children{nullptr, nullptr}, key(0), value(-1), index(index) {}
+    DoublyLinkedNode(int index, int value) : children{nullptr, nullptr}, key(0), value(value), index(index) {}
+    DoublyLinkedNode(int index, int key, int value) : children{nullptr, nullptr}, key(key), value(value), index(index) {}
 };
 
 template<typename Key, typename Value>
@@ -24,8 +24,8 @@ class OrderTree;
 template<typename Key, typename Value>
 struct GetRet {
     OrderTree<Key, Value> *new_tree;
-    Node<Value> *new_node;
-    std::vector<Node<Value>*> *reorder;
+    DoublyLinkedNode<Value> *new_node;
+    std::vector<DoublyLinkedNode<Value>*> *reorder;
 };
 
 template<typename Key, typename Value>
@@ -36,7 +36,7 @@ struct KeyValue {
 
 template<typename Key, typename Value>
 class OrderTree {
-	typedef Node<Value> _Node;
+	typedef DoublyLinkedNode<Value> _Node;
 	typedef KeyValue<Key, Value> _KeyValue;
 private:
     OrderTree *new_tree() const {

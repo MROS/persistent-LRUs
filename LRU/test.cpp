@@ -4,11 +4,13 @@
 #include <fstream>
 #include <variant>
 #include "simple-copy/lru.hpp"
+#include "rb-tree/lru.hpp"
 #include "LRU.h"
 using namespace std;
 
 vector<string> cases = {
-	"1"
+	"1",
+	"2"
 };
 
 using Cmd = std::variant<Get<int>, Put<int, int>>;
@@ -32,12 +34,20 @@ Ans read_ans(string &name) {
 		cout << "無法讀取 " << path << endl;
 	}
 	Ans ret;
+	vector<optional<int>> ans;
 	while (!file.eof()) {
-		vector<optional<int>> ans;
+		ans = {};
+		string x;
+		getline(file, x);
+		if (x.length() == 0) {
+			continue;
+		} else if (x[0] == 'n') {
+			ans.emplace_back(nullopt);
+		} else {
+			ans.emplace_back(stoi(x));
+		}
 		while (true) {
-			string x;
 			getline(file, x);
-			file >> x;
 			if (x.length() == 0) {
 				break;
 			} else if (x[0] == 'n') {
@@ -45,9 +55,6 @@ Ans read_ans(string &name) {
 			} else {
 				ans.emplace_back(stoi(x));
 			}
-		}
-		if (ans.size() == 0) {
-			continue;
 		}
 		ret.push_back(ans);
 	}
@@ -67,7 +74,6 @@ Input read_input(string &name) {
 	file >> ret.capacity;
 //	cout << "capacity: " << ret.capacity << endl;
 
-	vector<int> rd_only_len;
 	// 讀取 in
 	while (true) {
 		string op;
@@ -95,7 +101,6 @@ Input read_input(string &name) {
 			int n;
 			file >> n;
 //			cout << "read " << n << endl;
-			rd_only_len.push_back(n);
 			vector<int> rs;
 			for (int i = 0; i < n; i++) {
 				int k;
@@ -187,8 +192,14 @@ void print_ans(LRU<int, int> &lru_base, string name) {
 	cerr << "輸出 " << name << " 結束" << endl;
 }
 int main(int argc, char *argv[]) {
-	SimpleCopyLRU<int, int> simple_copy_lru;
+//	SimpleCopyLRU<int, int> simple_copy_lru;
 //	test(simple_copy_lru);
-	print_ans(simple_copy_lru, string("1"));
-	print_ans(simple_copy_lru, string("2"));
+//	print_ans(simple_copy_lru, string("1"));
+//	print_ans(simple_copy_lru, string("2"));
+	try {
+		RBTreeLRU<int, int> rb_tree_lru;
+		test(rb_tree_lru);
+	} catch (const char *e) {
+		cout << e << endl;
+	}
 }

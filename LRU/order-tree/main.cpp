@@ -8,7 +8,7 @@ int main() {
 
     auto *order_tree = new OrderTree<int, int>(3);
     order_tree->show();
-    vector<Node<int>*> nodes;
+    vector<DoublyLinkedNode<int>*> nodes;
     for (int i = 0; i < 4; i++) {
         auto ret = order_tree->add(i);
         order_tree = ret.first;

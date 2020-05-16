@@ -5,15 +5,15 @@
 #include <variant>
 
 template<typename Key, typename Value>
-struct Node {
-    Node *next, *last;
+struct DoublyLinkedNode {
+    DoublyLinkedNode *next, *last;
     Key key;
     Value value;
-    Node() {
+    DoublyLinkedNode() {
         next = nullptr;
         last = nullptr;
     }
-    Node(Node *node) {
+    DoublyLinkedNode(DoublyLinkedNode *node) {
 		this->key = node->key;
 		this->value = node->value;
 		next = nullptr;
@@ -23,7 +23,7 @@ struct Node {
 
 template<typename Key, typename Value>
 class LRUCache {
-	using _Node = Node<Key, Value>;
+	using _Node = DoublyLinkedNode<Key, Value>;
 private:
     size_t capacity{};
     int used{};

@@ -10,7 +10,7 @@ class OrderTreeLRU : public LRU<Key, Value> {
 private:
     size_t capacity{};
     size_t used{};
-    immer::map<Key, Node<Value> *> map;
+    immer::map<Key, DoublyLinkedNode<Value> *> map;
 	OrderTree<Key, Value> *order_tree{};
 
 public:
@@ -23,11 +23,11 @@ public:
 		int h = 0, c = capacity;
 		while (c > 0) { c /= 2; h++; }
 		this->order_tree = new OrderTree<Key, Value>(h + 1);
-		this->map = immer::map<Key, Node<Value>*>{};
+		this->map = immer::map<Key, DoublyLinkedNode<Value>*>{};
     }
 	OrderTreeLRU() = default;
 	std::pair<OrderTreeLRU*, std::optional<Value>> get(int key) {
-		Node<Value> *node = map[key];
+		DoublyLinkedNode<Value> *node = map[key];
 		if (node == nullptr) {
 			return make_pair(this, std::nullopt);
 		}
@@ -44,7 +44,7 @@ public:
     	return nullptr;
 	}
 	std::optional<Value> read_only_get(Key &key) {
-		Node<Value> *node = map[key];
+		DoublyLinkedNode<Value> *node = map[key];
 		if (node == nullptr) {
 			return std::nullopt;
 		} else {

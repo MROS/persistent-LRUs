@@ -5,6 +5,7 @@
 
 template<typename Key, typename Value>
 class RBTreeLRU : public LRU<Key, Value> {
+	typedef LRU<Key, Value> Parent;
 private:
     int capacity{};
 	int counter = 0;
@@ -12,10 +13,14 @@ private:
 public:
 	typedef std::variant<Get<Key>, Put<Key, Value>> Cmd;
 
-    explicit RBTreeLRU(int capacity) {
+    explicit RBTreeLRU(size_t capacity) {
         this->capacity = capacity;
     }
     RBTreeLRU() = default;
+
+	std::shared_ptr<Parent> create(size_t capacity) {
+		return std::make_shared<RBTreeLRU>(RBTreeLRU(capacity));
+	}
 
 	std::optional<Value> read_only_get(Key &key) {
         auto node = this->rb_tree.find_by_id(key);
