@@ -76,6 +76,26 @@ private:
 	static shared_ptr<_Node> createFullTree(int height, vector<_KeyValue> &kvs) {
 		return _createFullTree(height, 0, kvs);
 	}
+	// XXX:
+	// 改用迴圈會壞掉，代表樹中存在殘枝
+	static shared_ptr<_Node> get_leftest_leaf(shared_ptr<_Node> node, int height) {
+    	if (node == nullptr) {
+    		return nullptr;
+    	}
+    	if (height == 0) {
+    		return node;
+    	} else {
+    		auto leaf = get_leftest_leaf(node->children[0], height - 1);
+			if (leaf != nullptr) {
+				return leaf;
+			}
+			leaf = get_leftest_leaf(node->children[1], height - 1);
+			if (leaf != nullptr) {
+				return leaf;
+			}
+			return nullptr;
+		}
+	}
 	// 將 node 底下的葉子塞入 v 中。是 order 的輔助函數
 	static void _order(shared_ptr<_Node> node, int height, shared_ptr<deque<shared_ptr<_Node>>> v) {
     	if (height == 0) {
@@ -100,7 +120,7 @@ private:
 			_show(node->children[1], height - 1);
 		} else {
 			// 爲葉子節點
-			printf("(%d, %d) ", node->key, node->value);
+			printf("(%d, %d, %d) ", node->key, node->value, node->index);
 		}
 	}
 
@@ -140,7 +160,7 @@ public:
 	}
 
     // 創建一個新的樹，新增一個節點到當前 cursor 位置，其值爲 value
-    pair<shared_ptr<OrderTree>, shared_ptr<_Node>> add(Value value) {
+    pair<shared_ptr<OrderTree>, shared_ptr<_Node>> add(Key key, Value value) {
 		auto old_pointer = this->root;     // 原樹的指標
 		auto new_pointer = make_shared<_Node>();     // 正在創建的新樹的指標
 		auto new_root = new_pointer;
@@ -154,6 +174,7 @@ public:
 			new_pointer = new_pointer->children[br];
 		}
 		new_pointer->index = this->cursor;
+		new_pointer->key = key;
 		new_pointer->value = value;
 		auto new_tree = this->new_tree();
 		new_tree->root = new_root;
@@ -193,6 +214,7 @@ public:
 		if (this->cursor == 1 << this->height) {
 			throw "樹已滿，不可再前放東西";
 		}
+//		this->show();
 		auto old_pointer = this->root;     // 原樹的指標
 		auto pointer =  make_shared<_Node>();     // 正在創建的新樹的指標
 		auto new_root = pointer;
@@ -298,6 +320,7 @@ public:
 	// 從 nodes 重建新樹，這些節點將緊密位於新樹左側
 	// nodes 將變爲新樹的節點，由左到右
 	shared_ptr<OrderTree> rebuild(shared_ptr<deque<shared_ptr<_Node>>> nodes) {
+		printf("全複製\n");
 		for (int i = 0; i < nodes->size(); i++) {
 			(*nodes)[i] = make_shared<_Node>(*(*nodes)[i]);
 			(*nodes)[i]->index = i;
@@ -359,18 +382,9 @@ public:
 	PutRet<Key, Value> put(shared_ptr<_Node> node, Value value) {
 		shared_ptr<_Node> deleted = nullptr;
 		if (node == nullptr) {
-			auto cur = root;
-			for (int h = 0; h < this->height; h++) {
-				if (cur->children[0] != nullptr) {
-					cur = cur->children[0];
-				} else if (cur->children[1] != nullptr) {
-					cur = cur->children[1];
-				} else {
-					throw "樹中沒有任何有用葉子";
-				}
-			}
-			node = cur;
-			deleted = cur;
+			auto leftest = get_leftest_leaf(root, height);
+			node = leftest;
+			deleted = leftest;
 		}
 		auto ret = change_value(node, value);
 		auto tree = ret.first;

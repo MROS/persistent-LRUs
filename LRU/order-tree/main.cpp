@@ -11,7 +11,7 @@ int main() {
     order_tree->show();
     vector<shared_ptr<OrderTreeNode<int, int>>> nodes;
     for (int i = 0; i < 4; i++) {
-        auto ret = order_tree->add(i);
+        auto ret = order_tree->add(0, i);
         order_tree = ret.first;
         nodes.push_back(ret.second);
         order_tree->show();

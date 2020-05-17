@@ -194,7 +194,13 @@ void print_ans(LRU<int, int> &lru_base, string name) {
 	cerr << "輸出 " << name << " 結束" << endl;
 }
 int main(int argc, char *argv[]) {
-	OrderTreeLRU<int, int> order_tree_lru;
+//	try {
+		OrderTreeLRU<int, int> order_tree_lru;
+		test(order_tree_lru);
+//		print_ans(order_tree_lru, string("3"));
+//	} catch (const char *e) {
+//		cout << e << endl;
+//	}
 //	SimpleCopyLRU<int, int> simple_copy_lru;
 //	test(simple_copy_lru);
 //	print_ans(simple_copy_lru, string("1"));

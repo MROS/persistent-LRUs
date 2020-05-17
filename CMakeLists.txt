@@ -12,6 +12,7 @@ include_directories("./ate-pairing/test/")
 link_directories("./ate-pairing/lib/")
 
 add_subdirectory(LRU)
+add_subdirectory(LRU/order-tree)
 
 add_executable(node main.cpp workload.cpp workload.h chain.cpp chain.h transaction.h block.h VC.cpp VC.h edrax/vcs.cpp config.cpp config.h LRU/LRU.h)
 add_executable(order-lru LRU/order-tree/main.cpp LRU/order-tree/lru.hpp LRU/order-tree/order_tree.hpp)
