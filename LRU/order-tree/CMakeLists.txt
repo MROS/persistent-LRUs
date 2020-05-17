@@ -5,7 +5,7 @@ include(CTest)
 enable_testing()
 
 set(CMAKE_CXX_STANDARD 17)
-add_executable(lru main.cpp order_tree.hpp lru.hpp)
+add_executable(order-tree-lru main.cpp order_tree.hpp lru.hpp)
 
 set(CPACK_PROJECT_NAME ${PROJECT_NAME})
 set(CPACK_PROJECT_VERSION ${PROJECT_VERSION})

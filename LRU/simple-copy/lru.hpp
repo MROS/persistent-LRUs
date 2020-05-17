@@ -16,7 +16,7 @@ public:
 		this->cache = cache;
 	}
 	std::shared_ptr<Parent> create(size_t capacity) {
-		return std::make_shared<SimpleCopyLRU>(SimpleCopyLRU(capacity));
+		return std::make_shared<SimpleCopyLRU>(capacity);
 	}
 	SimpleCopyLRU() = default;
 	std::optional<Value> read_only_get(Key &key) {

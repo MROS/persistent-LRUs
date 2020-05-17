@@ -5,6 +5,7 @@
 #include <variant>
 #include "simple-copy/lru.hpp"
 #include "rb-tree/lru.hpp"
+#include "order-tree/lru.hpp"
 #include "LRU.h"
 using namespace std;
 
@@ -193,15 +194,16 @@ void print_ans(LRU<int, int> &lru_base, string name) {
 	cerr << "輸出 " << name << " 結束" << endl;
 }
 int main(int argc, char *argv[]) {
+	OrderTreeLRU<int, int> order_tree_lru;
 //	SimpleCopyLRU<int, int> simple_copy_lru;
 //	test(simple_copy_lru);
 //	print_ans(simple_copy_lru, string("1"));
 //	print_ans(simple_copy_lru, string("2"));
 //	print_ans(simple_copy_lru, string("3"));
-	try {
-		RBTreeLRU<int, int> rb_tree_lru;
-		test(rb_tree_lru);
-	} catch (const char *e) {
-		cout << e << endl;
-	}
+//	try {
+//		RBTreeLRU<int, int> rb_tree_lru;
+//		test(rb_tree_lru);
+//	} catch (const char *e) {
+//		cout << e << endl;
+//	}
 }

@@ -7,17 +7,17 @@
 using namespace std;
 
 // NOTE: 有 enum 的話，可分成內部節點跟葉子節點
-template<typename Value>
-class DoublyLinkedNode {
+template<typename Key, typename Value>
+class OrderTreeNode {
 public:
-    shared_ptr<DoublyLinkedNode> children[2];
-    int key; // 作用是 debug ? TODO: 若無用，刪除之
+    shared_ptr<OrderTreeNode> children[2];
+    Key key;
     Value value;          // value 若爲 -1 ，表示沒有 value
     int index;          // index 若爲 -1 ，表示其爲內部節點（而非葉子節點）
-    DoublyLinkedNode() : children{nullptr, nullptr}, key(0), value(-1), index(-1) {}
-    DoublyLinkedNode(int index) : children{nullptr, nullptr}, key(0), value(-1), index(index) {}
-    DoublyLinkedNode(int index, int value) : children{nullptr, nullptr}, key(0), value(value), index(index) {}
-    DoublyLinkedNode(int index, int key, int value) : children{nullptr, nullptr}, key(key), value(value), index(index) {}
+    OrderTreeNode() : children{nullptr, nullptr}, key(0), value(-1), index(-1) {}
+    OrderTreeNode(int index) : children{nullptr, nullptr}, key(0), value(-1), index(index) {}
+    OrderTreeNode(int index, Value value) : children{nullptr, nullptr}, key(0), value(value), index(index) {}
+    OrderTreeNode(int index, Key key, Value value) : children{nullptr, nullptr}, key(key), value(value), index(index) {}
 };
 
 template<typename Key, typename Value>
@@ -27,7 +27,17 @@ class OrderTree;
 template<typename Key, typename Value>
 struct GetRet {
     shared_ptr<OrderTree<Key, Value>> new_tree;
-    shared_ptr<DoublyLinkedNode<Value>> new_node;
+    shared_ptr<OrderTreeNode<Key, Value>> new_node;
+	shared_ptr<deque<shared_ptr<OrderTreeNode<Key, Value>>>> reorder;
+};
+
+// OrderTree::put 的回傳結構
+template<typename Key, typename Value>
+struct PutRet {
+	shared_ptr<OrderTree<Key, Value>> new_tree;
+	shared_ptr<OrderTreeNode<Key, Value>> new_node;
+	shared_ptr<OrderTreeNode<Key, Value>> deleted_node;
+	shared_ptr<deque<shared_ptr<OrderTreeNode<Key, Value>>>> reorder;
 };
 
 template<typename Key, typename Value>
@@ -38,7 +48,7 @@ struct KeyValue {
 
 template<typename Key, typename Value>
 class OrderTree {
-	typedef DoublyLinkedNode<Value> _Node;
+	typedef OrderTreeNode<Key, Value> _Node;
 	typedef KeyValue<Key, Value> _KeyValue;
 private:
     shared_ptr<OrderTree> new_tree() const {
@@ -67,9 +77,9 @@ private:
 		return _createFullTree(height, 0, kvs);
 	}
 	// 將 node 底下的葉子塞入 v 中。是 order 的輔助函數
-	static void _order(shared_ptr<_Node> node, int height, deque<shared_ptr<_Node>> &v) {
+	static void _order(shared_ptr<_Node> node, int height, shared_ptr<deque<shared_ptr<_Node>>> v) {
     	if (height == 0) {
-    		v.push_back(node);
+    		v->push_back(node);
     	} else {
     		if (node->children[0] != nullptr) {
     			_order(node->children[0], height - 1, v);
@@ -122,8 +132,8 @@ public:
 
 	// 打印有東西的葉子順序
 	void show_order() {
-		printf("order: ");
-		for (auto node: this->order()) {
+		auto order = get_order();
+		for (auto node: *order) {
 			printf("(%d, %d)", node->key, node->value);
 		}
 		puts("");
@@ -199,9 +209,11 @@ public:
 			pointer->children[br] = make_shared<_Node>();
 			pointer = pointer->children[br];
 		}
+#ifdef debug
 		printf("node->index: %d, this->cursor: %d\n", node->index, this->cursor);
 		printf("this->height: %d\n", this->height);
 		printf("common_h: %d\n", common_h);
+#endif
 
 		// 處理 node->index
 		// 先觀察何處開始爲孤枝
@@ -211,13 +223,17 @@ public:
 			int br = node->index & (1 << h) ? 1 : 0;
 			if (p->children[!br] == nullptr) {
 				lone_h = lone_h < 0 ? h + 1 : lone_h;
+#ifdef debug
 				printf("孤枝高度可能爲 %d\n", lone_h);
+#endif
 			} else {
 				lone_h = 0;
 			}
 			p = p->children[br];
 		}
+#ifdef debug
 		printf("孤枝高度爲 %d\n", lone_h);
+#endif
 
 		// 僅複製到孤枝分叉處
 
@@ -242,7 +258,9 @@ public:
 		auto cursor_pointer = pointer->children[1];
 		p = old_pointer->children[1];
 		for (h = common_h - 1; h >= 0 && p != nullptr; h--) {
+#ifdef debug
 			printf("cursor height: %d\n", h);
+#endif
 			int br = this->cursor & (1 << h) ? 1 : 0;
 			cursor_pointer->children[!br] = p->children[!br];
 			cursor_pointer->children[br] = make_shared<_Node>();
@@ -251,7 +269,9 @@ public:
 		}
 		// 原樹中已經沒有同路徑的分支了
 		for (; h >= 0; h--) {
+#ifdef debug
 			printf("走自己的路 height: %d\n", h);
+#endif
 			int br = this->cursor & (1 << h) ? 1 : 0;
 			cursor_pointer->children[br] = make_shared<_Node>();
 			cursor_pointer = cursor_pointer->children[br];
@@ -269,33 +289,42 @@ public:
 	}
 
 	// 回傳現在葉子節點的順序
-	deque<shared_ptr<_Node>> order() {
-		deque<shared_ptr<_Node>> ret;
+	shared_ptr<deque<shared_ptr<_Node>>> get_order() {
+		auto ret = make_shared<deque<shared_ptr<_Node>>>();
 		_order(root, height, ret);
 		return ret;
 	}
 
 	// 從 nodes 重建新樹，這些節點將緊密位於新樹左側
-	shared_ptr<OrderTree> rebuild(deque<shared_ptr<_Node>> nodes) {
+	// nodes 將變爲新樹的節點，由左到右
+	shared_ptr<OrderTree> rebuild(shared_ptr<deque<shared_ptr<_Node>>> nodes) {
+		for (int i = 0; i < nodes->size(); i++) {
+			(*nodes)[i] = make_shared<_Node>(*(*nodes)[i]);
+			(*nodes)[i]->index = i;
+		}
 		auto tree = this->new_tree();
-		tree->cursor = nodes.size();
+		tree->cursor = nodes->size();
+		deque<shared_ptr<_Node>> layer;
+		for (auto node : *nodes) {
+			layer.push_back(node);
+		}
 		// 每個迴圈搞定一層
 		for (int h = 0; h < height; h++) {
-			int num = nodes.size();
+			int num = layer.size();
 			for (int i = 0; i + 1 < num; i += 2) {
 				auto parent = make_shared<_Node>();
-				parent->children[0] = nodes.front(); nodes.pop_front();
-				parent->children[1] = nodes.front(); nodes.pop_front();
-				nodes.push_back(parent);
+				parent->children[0] = layer.front(); layer.pop_front();
+				parent->children[1] = layer.front(); layer.pop_front();
+				layer.push_back(parent);
 			}
 			if (num % 2 == 1) {
 				auto parent = make_shared<_Node>();
-				parent->children[0] = nodes.front(); nodes.pop_front();
+				parent->children[0] = layer.front(); layer.pop_front();
 				parent->children[1] = nullptr;
-				nodes.push_back(parent);
+				layer.push_back(parent);
 			}
 		}
-		tree->root = nodes[0];
+		tree->root = layer[0];
 		return tree;
 	}
 
@@ -306,28 +335,68 @@ public:
 		auto new_tree = ret.first;
 
 		if (new_tree->cursor == 1 << this->height) {
+#ifdef debug
 			printf("滿了！！！！！！！！！\n");
-			auto order = new_tree->order();
+#endif
+			auto order = new_tree->get_order();
 			new_tree = rebuild(order);
 			return GetRet<Key, Value> {
-					new_tree,
-					ret.second,
+				new_tree,
+				ret.second,
+				order
 			};
 		} else {
 			return GetRet<Key, Value> {
-					new_tree,
-					ret.second,
+				new_tree,
+				ret.second,
+				nullptr
 			};
 		}
 	}
 
 	// 創建一個新的樹， node 的值被修改爲 value ，並且 node 將被移到當前 cursor 位置
-	// XXX: 函數簽名應爲 put(Value value)
-	pair<shared_ptr<OrderTree>, shared_ptr<_Node>> put(shared_ptr<_Node> node, Value value) {
+	// 若 node 爲 nullptr ，則拔除最左側節點，加入一個新節點
+	PutRet<Key, Value> put(shared_ptr<_Node> node, Value value) {
+		shared_ptr<_Node> deleted = nullptr;
+		if (node == nullptr) {
+			auto cur = root;
+			for (int h = 0; h < this->height; h++) {
+				if (cur->children[0] != nullptr) {
+					cur = cur->children[0];
+				} else if (cur->children[1] != nullptr) {
+					cur = cur->children[1];
+				} else {
+					throw "樹中沒有任何有用葉子";
+				}
+			}
+			node = cur;
+			deleted = cur;
+		}
 		auto ret = change_value(node, value);
 		auto tree = ret.first;
-		tree->show();
 		auto new_node = ret.second;
-		return tree->to_head(new_node);
+#ifdef debug
+		tree->show();
+#endif
+		ret = tree->to_head(new_node);
+		tree = ret.first;
+		new_node = ret.second;
+		if (tree->cursor == 1 << this->height) {
+			auto order = tree->get_order();
+			tree = rebuild(order);
+			return {
+				.new_tree = tree,
+				.new_node = nullptr,
+				.deleted_node = deleted,
+				.reorder = order
+			};
+		} else {
+			return {
+				.new_tree = tree,
+				.new_node = new_node,
+				.deleted_node = deleted,
+				.reorder = nullptr
+			};
+		}
 	}
 };

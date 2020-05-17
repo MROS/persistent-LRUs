@@ -5,53 +5,65 @@
 #include <vector>
 #include <memory>
 
+using namespace std;
+
 template<typename Key, typename Value>
 class OrderTreeLRU : public LRU<Key, Value> {
 private:
     size_t capacity{};
     size_t used{};
-    immer::map<Key, DoublyLinkedNode<Value> *> map;
-	OrderTree<Key, Value> *order_tree{};
+    immer::map<Key, shared_ptr<OrderTreeNode<Key, Value>>> map;
+	shared_ptr<OrderTree<Key, Value>> order_tree{};
 
 public:
 	typedef LRU<Key, Value> Parent;
-	typedef std::variant<Get<Key>, Put<Key, Value>> Cmd;
+	typedef variant<Get<Key>, Put<Key, Value>> Cmd;
 
     explicit OrderTreeLRU(size_t capacity) {
 		this->capacity = capacity;
 		this->used = 0;
 		int h = 0, c = capacity;
 		while (c > 0) { c /= 2; h++; }
-		this->order_tree = new OrderTree<Key, Value>(h + 1);
-		this->map = immer::map<Key, DoublyLinkedNode<Value>*>{};
+		this->order_tree = make_shared<OrderTree<Key, Value>>(h + 1);
+		this->map = immer::map<Key, shared_ptr<OrderTreeNode<Key, Value>>>{};
     }
 	OrderTreeLRU() = default;
-	std::pair<OrderTreeLRU*, std::optional<Value>> get(int key) {
-		DoublyLinkedNode<Value> *node = map[key];
-		if (node == nullptr) {
-			return make_pair(this, std::nullopt);
-		}
-		auto get_ret = order_tree->get(node);
-		auto new_cache = new OrderTreeLRU<Key, Value>();
-		new_cache->capacity = capacity;
-		new_cache->used = used;
-		new_cache->order_tree = get_ret.new_tree;
-		new_cache->map = this->map.set(key, get_ret.new_node);
-
-		return make_pair(new_cache, node->value);
+	shared_ptr<Parent> create(size_t capacity) {
+		return make_shared<OrderTreeLRU>(capacity);
 	}
-    OrderTreeLRU* put(int key, int value) {
+    shared_ptr<OrderTreeLRU> put(int key, int value) {
     	return nullptr;
 	}
-	std::optional<Value> read_only_get(Key &key) {
-		DoublyLinkedNode<Value> *node = map[key];
+	optional<Value> read_only_get(Key &key) {
+		shared_ptr<OrderTreeNode<Key, Value>> node = map[key];
 		if (node == nullptr) {
-			return std::nullopt;
+			return nullopt;
 		} else {
 			return node->value;
 		}
 	}
-	std::shared_ptr<Parent> batch_operate(std::vector<Cmd> &cmds) {
-		return std::shared_ptr<Parent>();
+	shared_ptr<Parent> batch_operate(vector<Cmd> &cmds) {
+		auto tree = order_tree;
+		auto new_cache = shared_ptr<OrderTreeLRU<Key, Value>>();
+		new_cache->capacity = capacity;
+		new_cache->used = used;
+		new_cache->map = map;
+		for (auto &cmd: cmds) {
+			if (std::get_if<Get<Key>>(&cmd) != nullptr) {
+				Get<Key> get = std::get<Get<Key>>(cmd);
+				shared_ptr<OrderTreeNode<Key, Value>> node = map[get.key];
+				if (node == nullptr) {
+					continue;
+				} else {
+					auto ret = tree->get(node);
+					tree = ret.new_tree;
+					map[get.key] = ret.new_node;
+				}
+			} else {
+				Put<Key, Value> put = std::get<Put<Key, Value>>(cmd);
+				shared_ptr<OrderTreeNode<Key, Value>> node = map[put.key];
+			}
+		}
+		return shared_ptr<Parent>();
 	}
 };
