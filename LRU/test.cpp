@@ -11,7 +11,7 @@ using namespace std;
 
 vector<string> cases = {
 	"1",
-	"2",
+//	"2",
 	"3"
 };
 

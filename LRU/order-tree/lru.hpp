@@ -4,6 +4,7 @@
 #include <optional>
 #include <vector>
 #include <memory>
+#include <cmath>
 
 using namespace std;
 
@@ -22,8 +23,7 @@ public:
     explicit OrderTreeLRU(size_t capacity) {
 		this->capacity = capacity;
 		this->used = 0;
-		int h = 1, c = capacity;
-		while (c > 0) { c /= 2; h++; }
+		int h = log2(capacity) + 1;
 //		printf("capacity = %lu, height = %d", capacity, h);
 		this->order_tree = make_shared<OrderTree<Key, Value>>(h);
 		this->map = immer::map<Key, shared_ptr<OrderTreeNode<Key, Value>>>{};
@@ -72,7 +72,7 @@ public:
 							auto node = iter->second;
 //							printf("(%d, %d, %d, %d) ", iter->first, node->key, node->value, node->index);
 						}
-						puts("");
+//						puts("");
 					} else {
 						new_map = new_map.set(get.key, ret.new_node);
 					}
@@ -86,14 +86,13 @@ public:
 					new_tree = ret.first;
 					new_map = new_map.set(put.key, ret.second);
 				} else {
-					auto put_ret = new_tree->put(node, put.value);
+					auto put_ret = new_tree->put(node, put.key, put.value);
 					new_tree = put_ret.new_tree;
 					if (put_ret.deleted_node != nullptr) {
 						new_map = new_map.erase(put_ret.deleted_node->key);
 					}
 					if (put_ret.reorder != nullptr) {
 						new_map = {};
-						new_tree->show();
 						for (auto node : *put_ret.reorder) {
 							new_map = new_map.set(node->key, node);
 						}
@@ -103,6 +102,7 @@ public:
 				}
 			}
 		}
+//		new_tree->show();
 		new_cache->order_tree = new_tree;
 		new_cache->map = new_map;
 		return new_cache;

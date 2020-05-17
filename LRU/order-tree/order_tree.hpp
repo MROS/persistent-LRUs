@@ -183,8 +183,8 @@ public:
 		return ret;
 	}
 
-	// 創建一個新的樹， node 的值被修改爲 value
-	pair<shared_ptr<OrderTree>, shared_ptr<_Node>> change_value(shared_ptr<_Node> node, Value value) {
+	// 創建一個新的樹， node 的值被修改爲 value, 鍵被修改爲 key
+	pair<shared_ptr<OrderTree>, shared_ptr<_Node>> change_node(shared_ptr<_Node> node, Key key, Value value) {
 		auto old_pointer = this->root;      // 原樹的指標
 		auto new_pointer = make_shared<_Node>();     // 正在創建的新樹的指標
 		auto new_root = new_pointer;
@@ -195,6 +195,7 @@ public:
 			new_pointer->children[br] = make_shared<_Node>();
 			new_pointer = new_pointer->children[br];
 		}
+		new_pointer->key = key;
 		new_pointer->value = value;
 		new_pointer->index = node->index;
 		shared_ptr<OrderTree> new_tree = this->new_tree();
@@ -320,7 +321,9 @@ public:
 	// 從 nodes 重建新樹，這些節點將緊密位於新樹左側
 	// nodes 將變爲新樹的節點，由左到右
 	shared_ptr<OrderTree> rebuild(shared_ptr<deque<shared_ptr<_Node>>> nodes) {
-		printf("全複製\n");
+//		this->show();
+//		this->show_order();
+//		printf("全複製\n");
 		for (int i = 0; i < nodes->size(); i++) {
 			(*nodes)[i] = make_shared<_Node>(*(*nodes)[i]);
 			(*nodes)[i]->index = i;
@@ -328,7 +331,8 @@ public:
 		auto tree = this->new_tree();
 		tree->cursor = nodes->size();
 		deque<shared_ptr<_Node>> layer;
-		for (auto node : *nodes) {
+		for (int i = 0; i < nodes->size(); i++) {
+			auto node = (*nodes)[i];
 			layer.push_back(node);
 		}
 		// 每個迴圈搞定一層
@@ -348,6 +352,8 @@ public:
 			}
 		}
 		tree->root = layer[0];
+//		tree->show();
+//		tree->show_order();
 		return tree;
 	}
 
@@ -362,7 +368,7 @@ public:
 			printf("滿了！！！！！！！！！\n");
 #endif
 			auto order = new_tree->get_order();
-			new_tree = rebuild(order);
+			new_tree = new_tree->rebuild(order);
 			return GetRet<Key, Value> {
 				new_tree,
 				ret.second,
@@ -379,14 +385,14 @@ public:
 
 	// 創建一個新的樹， node 的值被修改爲 value ，並且 node 將被移到當前 cursor 位置
 	// 若 node 爲 nullptr ，則拔除最左側節點，加入一個新節點
-	PutRet<Key, Value> put(shared_ptr<_Node> node, Value value) {
+	PutRet<Key, Value> put(shared_ptr<_Node> node, Key key, Value value) {
 		shared_ptr<_Node> deleted = nullptr;
 		if (node == nullptr) {
 			auto leftest = get_leftest_leaf(root, height);
 			node = leftest;
 			deleted = leftest;
 		}
-		auto ret = change_value(node, value);
+		auto ret = change_node(node, key, value);
 		auto tree = ret.first;
 		auto new_node = ret.second;
 #ifdef debug
