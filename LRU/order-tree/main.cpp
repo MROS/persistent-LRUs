@@ -19,6 +19,11 @@ int main() {
     order_tree->change_node(nodes[0], 100, 100);
 	order_tree->show();
 	order_tree->show_order();
+	for (int i = 0; i < 3; i++) {
+		order_tree->to_head(nodes[i]);
+		order_tree->show();
+		order_tree->show_order();
+	}
 //    cout << "測試 put" << endl;
 //    // 測試 put
 //    auto br1 = order_tree;

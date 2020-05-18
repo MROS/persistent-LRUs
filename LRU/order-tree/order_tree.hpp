@@ -91,9 +91,9 @@ private:
 		}
 	}
 	// 將 node 底下的葉子塞入 v 中。是 order 的輔助函數
-	static void _order(shared_ptr<_Node> node, int height, shared_ptr<deque<shared_ptr<_Node>>> v) {
+	static void _order(shared_ptr<_Node> node, int height, shared_ptr<deque<_Node*>> v) {
     	if (height == 0) {
-    		v->push_back(node);
+    		v->push_back(node.get());
     	} else {
     		if (node->children[0] != nullptr) {
     			_order(node->children[0], height - 1, v);
@@ -183,6 +183,21 @@ public:
 		return cur;
 	}
 
+	void remove(shared_ptr<_Node> *node, int index, int h) {
+		if (*node == nullptr) {
+			throw "remove 一條指針";
+		}
+		_Node *cur = make_mut(node);
+		if (h >= 0) {
+			int br = index & (1 << h) ? 1 : 0;
+			remove(&cur->children[br], index, h - 1);
+			if (cur->children[br] == nullptr && cur->children[!br] == nullptr) {
+				take(node);
+			}
+		} else {
+			take(node);
+		}
+	}
 
 	// 創建一個新的樹， node 將被移到當前 cursor 位置
 	// to_head(A) 做兩件事情
@@ -190,109 +205,22 @@ public:
 	// 2. 在 cursor 位置填入 A
 	//
 	// 也就是說，我們必須複製通往 node->index 的路徑，以及通往 this->cursor 的路徑
-	pair<shared_ptr<OrderTree>, shared_ptr<_Node>> to_head(shared_ptr<_Node> node) {
+	_Node* to_head(_Node* node) {
 		if (this->cursor == 1 << this->height) {
 			throw "樹已滿，不可再前放東西";
 		}
-//		this->show();
-		auto old_pointer = this->root;     // 原樹的指標
-		auto pointer =  make_shared<_Node>();     // 正在創建的新樹的指標
-		auto new_root = pointer;
-		// 一直到 node->index 跟 this->cursor 的最低共同祖先爲止
-		// 目標都是一樣的，都是複製這條路徑
-		int common_h;
-		for (common_h = this->height - 1;
-			 common_h >= 0 && (node->index & (1 << common_h)) == (this->cursor & (1 << common_h));
-			 common_h--)
-		{
-			int br = this->cursor & (1 << common_h) ? 1 : 0;
-			pointer->children[!br] = old_pointer->children[!br];
-			old_pointer = old_pointer->children[br];
-			pointer->children[br] = make_shared<_Node>();
-			pointer = pointer->children[br];
-		}
-#ifdef debug
-		printf("node->index: %d, this->cursor: %d\n", node->index, this->cursor);
-		printf("this->height: %d\n", this->height);
-		printf("common_h: %d\n", common_h);
-#endif
 
-		// 處理 node->index
-		// 先觀察何處開始爲孤枝
-		int lone_h = 0; // 在 lone_h 高度時沒有分叉，且一路向下也沒有任何分叉
-		auto p = old_pointer->children[0]; // 因爲 cursor 較新， node 必定在 cursor 之左，走 children[0] 分支
-		for (int h = common_h - 1; h >= 0; h--) {
-			int br = node->index & (1 << h) ? 1 : 0;
-			if (p->children[!br] == nullptr) {
-				lone_h = lone_h < 0 ? h + 1 : lone_h;
-#ifdef debug
-				printf("孤枝高度可能爲 %d\n", lone_h);
-#endif
-			} else {
-				lone_h = 0;
-			}
-			p = p->children[br];
-		}
-#ifdef debug
-		printf("孤枝高度爲 %d\n", lone_h);
-#endif
+		Key key = node->key;
+		Value value = node->value;
 
-		// 僅複製到孤枝分叉處
+		remove(&root, node->index, height - 1);
+		return add(key, value);
 
-		// 若最低共同祖先一往左就是孤枝，整條設爲 nullptr
-		auto index_pointer = pointer;
-		p = old_pointer;
-		int h;
-		for (h = common_h; h > lone_h; h--) {
-			int br = node->index & (1 << h) ? 1 : 0;
-			index_pointer->children[!br] = p->children[!br];
-			index_pointer->children[br] = make_shared<_Node>();
-			index_pointer = index_pointer->children[br];
-			p = p->children[br];
-		}
-		// 孤枝處設爲 nullptr
-		int br = node->index & (1 << h) ? 1 : 0;
-		index_pointer->children[!br] = p->children[!br];
-		index_pointer->children[br] = nullptr;
-
-		// 處理 this->cursor
-		pointer->children[1] = make_shared<_Node>();
-		auto cursor_pointer = pointer->children[1];
-		p = old_pointer->children[1];
-		for (h = common_h - 1; h >= 0 && p != nullptr; h--) {
-#ifdef debug
-			printf("cursor height: %d\n", h);
-#endif
-			int br = this->cursor & (1 << h) ? 1 : 0;
-			cursor_pointer->children[!br] = p->children[!br];
-			cursor_pointer->children[br] = make_shared<_Node>();
-			cursor_pointer = cursor_pointer->children[br];
-			p = p->children[br];
-		}
-		// 原樹中已經沒有同路徑的分支了
-		for (; h >= 0; h--) {
-#ifdef debug
-			printf("走自己的路 height: %d\n", h);
-#endif
-			int br = this->cursor & (1 << h) ? 1 : 0;
-			cursor_pointer->children[br] = make_shared<_Node>();
-			cursor_pointer = cursor_pointer->children[br];
-		}
-		cursor_pointer->index = this->cursor;
-		cursor_pointer->value = node->value;
-		cursor_pointer->key = node->key;
-
-		// 創建新的樹並回傳
-		auto new_tree = this->new_tree();
-		new_tree->root = new_root;
-		new_tree->cursor++;
-		pair<shared_ptr<OrderTree>, shared_ptr<_Node>> ret = {new_tree, cursor_pointer};
-		return ret;
 	}
 
 	// 回傳現在葉子節點的順序
-	shared_ptr<deque<shared_ptr<_Node>>> get_order() {
-		auto ret = make_shared<deque<shared_ptr<_Node>>>();
+	shared_ptr<deque<_Node*>> get_order() {
+		auto ret = make_shared<deque<_Node*>>();
 		_order(root, height, ret);
 		return ret;
 	}
