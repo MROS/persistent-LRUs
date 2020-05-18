@@ -35,7 +35,7 @@ struct GetRet {
 template<typename Key, typename Value>
 struct PutRet {
 	OrderTreeNode<Key, Value>* new_node;
-	OrderTreeNode<Key, Value>* deleted_node;
+	optional<Key> deleted_key;
 	shared_ptr<vector<OrderTreeNode<Key, Value>*>> reorder;
 };
 
@@ -169,8 +169,11 @@ public:
 		for (int h = this->height - 1; h >= 0; h--) {
 			int br = node->index & (1 << h) ? 1 : 0;
 			if (cur->children[br] == nullptr) {
-				cur->children[br] = make_shared<_Node>();
-				cur = cur->children[br].get();
+//				cur->children[br] = make_shared<_Node>();
+//				cur = cur->children[br].get();
+				show();
+				printf("嘗試 change_node 不存在的節點 (%d, %d, %d)\n", node->key, node->value, node->index);
+				throw "嘗試 change_node 不存在的節點";
 			} else {
 				cur = make_mut(&cur->children[br]);
 			}
@@ -181,7 +184,13 @@ public:
 	}
 
 	void remove(shared_ptr<_Node> *node, int index, int h) {
+		if (index < 0 || index > 1 << height) {
+			show();
+			printf("remove 超出範圍 index: %d\n", index);
+			throw "remove 超出範圍 index";
+		}
 		if (*node == nullptr) {
+			printf("remove 空指針\n");
 			throw "remove 空指針";
 		}
 		_Node *cur = make_mut(node);
@@ -215,8 +224,8 @@ public:
 	// 從 nodes 重建新樹，這些節點將緊密位於新樹左側
 	// nodes 將變爲新樹的節點，由左到右
 	shared_ptr<vector<_Node*>> rebuild() {
-//		this->show();
-//		this->show_order();
+//		show();
+//		show_order();
 //		printf("全複製\n");
 		auto nodes = get_order();
 		cursor = nodes->size();
@@ -242,6 +251,8 @@ public:
 			}
 		}
 		root = (*nodes)[0];
+//		show();
+//		show_order();
 		return ret;
 	}
 
@@ -267,11 +278,11 @@ public:
 	// 創建一個新的樹， node 的值被修改爲 value ，並且 node 將被移到當前 cursor 位置
 	// 若 node 爲 nullptr ，則拔除最左側節點，加入一個新節點
 	PutRet<Key, Value> put(_Node *node, Key key, Value value) {
-		_Node *deleted = nullptr;
+		optional<Key> deleted = nullopt;
 		if (node == nullptr) {
 			_Node *leftest = get_leftest_leaf(root, height);
 			node = leftest;
-			deleted = leftest;
+			deleted = leftest->key;
 		}
 		_Node *new_node = change_node(node, key, value);
 		new_node = to_head(new_node);
@@ -279,13 +290,13 @@ public:
 			auto order = rebuild();
 			return {
 				.new_node = nullptr,
-				.deleted_node = deleted,
+				.deleted_key = deleted,
 				.reorder = order
 			};
 		} else {
 			return {
 				.new_node = new_node,
-				.deleted_node = deleted,
+				.deleted_key = deleted,
 				.reorder = nullptr
 			};
 		}

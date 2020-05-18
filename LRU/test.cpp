@@ -14,7 +14,6 @@ vector<string> cases = {
 	"2",
 	"3",
 	"4",
-	"5"
 };
 
 using Cmd = std::variant<Get<int>, Put<int, int>>;
@@ -203,10 +202,10 @@ int main(int argc, char *argv[]) {
 //	print_ans(simple_copy_lru, string("3"));
 //	print_ans(simple_copy_lru, string("4"));
 //	print_ans(simple_copy_lru, string("5"));
-	SimpleCopyLRU<int, int> simple_copy_lru;
-	test(simple_copy_lru);
-//	OrderTreeLRU<int, int> order_tree_lru;
-//	test(order_tree_lru);
+//	SimpleCopyLRU<int, int> simple_copy_lru;
+//	test(simple_copy_lru);
+	OrderTreeLRU<int, int> order_tree_lru;
+	test(order_tree_lru);
 //	RBTreeLRU<int, int> rb_tree_lru;
 //	test(rb_tree_lru);
 }
