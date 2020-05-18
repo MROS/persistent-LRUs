@@ -23,8 +23,8 @@ public:
     explicit OrderTreeLRU(size_t capacity) {
 		this->capacity = capacity;
 		this->used = 0;
-		int h = log2(capacity) + 1;
-//		printf("capacity = %lu, height = %d", capacity, h);
+		int h = log2(capacity) + 2;
+//		printf("capacity = %lu, height = %d\n", capacity, h);
 		this->order_tree = make_shared<OrderTree<Key, Value>>(h);
 		this->map = immer::map<Key, shared_ptr<OrderTreeNode<Key, Value>>>{};
     }

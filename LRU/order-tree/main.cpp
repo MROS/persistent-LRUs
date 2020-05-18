@@ -20,27 +20,27 @@ int main() {
     cout << "測試 put" << endl;
     // 測試 put
     auto br1 = order_tree;
-	auto put_ret = br1->put(nodes[0], 100);
+	auto put_ret = br1->put(nodes[0], nodes[0]->key, 100);
 	br1 = put_ret.new_tree;
 	auto front = put_ret.new_node;
 	br1->show();
 
-	put_ret = br1->put(front, 101);
+	put_ret = br1->put(front, front->key, 101);
 	br1 = put_ret.new_tree;
 	front = put_ret.new_node;
 	br1->show();
 
-	put_ret = br1->put(front, 102);
+	put_ret = br1->put(front, front->key, 102);
 	br1 = put_ret.new_tree;
 	front = put_ret.new_node;
 	br1->show();
 
-	put_ret = br1->put(front, 103);
+	put_ret = br1->put(front, front->key, 103);
 	br1 = put_ret.new_tree;
 	br1->show();
 	front = put_ret.reorder->operator[](3);
 
-	put_ret = br1->put(front, 104);
+	put_ret = br1->put(front, front->key, 104);
 	br1 = put_ret.new_tree;
 	front = put_ret.new_node;
 	br1->show();

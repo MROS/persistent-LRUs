@@ -58,24 +58,6 @@ private:
         tree->cursor = this->cursor;
         return tree;
     }
-	static shared_ptr<_Node> _createFullTree(int height, int index, vector<_KeyValue> &kvs) {
-		if (height < 0) {
-			throw "樹高度不得爲負";
-		} else if (height == 0 && index < kvs.size()) {
-			int value = kvs.size() > index ? kvs[index].value : -1;
-			return new _Node(index, value);
-		} else if (height == 0) {
-			return nullptr;
-		} else {
-			auto root = new _Node();
-			root->children[0] = _createFullTree(height - 1, index * 2, kvs);
-			root->children[1] = _createFullTree(height - 1, index * 2 + 1, kvs);
-			return root;
-		}
-	}
-	static shared_ptr<_Node> createFullTree(int height, vector<_KeyValue> &kvs) {
-		return _createFullTree(height, 0, kvs);
-	}
 	// XXX:
 	// 改用迴圈會壞掉，代表樹中存在殘枝
 	static shared_ptr<_Node> get_leftest_leaf(shared_ptr<_Node> node, int height) {

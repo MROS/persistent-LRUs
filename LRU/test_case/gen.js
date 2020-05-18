@@ -1,13 +1,13 @@
-const MAX = 10;
+const MAX = 1000;
 
 function rand(max=MAX) {
     return parseInt(Math.random() * max);
 }
 
-console.log(4);
+console.log(15000);
 console.log();
 
-for (let i = 0; i < 30; i++) {
+for (let i = 0; i < 3000; i++) {
     let amount = rand();
     console.log(`batch ${amount}`);
     for (let j = 0; j < amount; j++) {
