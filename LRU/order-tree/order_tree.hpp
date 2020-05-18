@@ -3,6 +3,7 @@
 #include <queue>
 #include <cstdio>
 #include <memory>
+#include "../util.hpp"
 
 using namespace std;
 
@@ -58,6 +59,17 @@ private:
         tree->cursor = this->cursor;
         return tree;
     }
+    // transient
+	shared_ptr<OrderTree> new_version() const {
+		auto tree = make_shared<OrderTree>();
+		tree->height = height;
+		tree->root = make_shared<_Node>();
+		// 共享兒子
+		tree->root->children[0] = root->children[0];
+		tree->root->children[1] = root->children[1];
+		tree->cursor = cursor;
+		return tree;
+	}
 	// XXX:
 	// 改用迴圈會壞掉，代表樹中存在殘枝
 	static shared_ptr<_Node> get_leftest_leaf(shared_ptr<_Node> node, int height) {
@@ -114,11 +126,6 @@ public:
     // 最左的葉子索引爲 0 ，最右的葉子索引爲 2^height - 1
     int cursor;
     OrderTree() = default;
-	OrderTree(int height, vector<_KeyValue> &kvs) {
-		this->height = height;
-		this->cursor = kvs.size();
-		this->root = createFullTree(height, kvs);
-	}
 
 	explicit OrderTree(int height) {
 		this->height = height;
@@ -142,27 +149,41 @@ public:
 	}
 
     // 創建一個新的樹，新增一個節點到當前 cursor 位置，其值爲 value
-    pair<shared_ptr<OrderTree>, shared_ptr<_Node>> add(Key key, Value value) {
-		auto old_pointer = this->root;     // 原樹的指標
-		auto new_pointer = make_shared<_Node>();     // 正在創建的新樹的指標
-		auto new_root = new_pointer;
+    _Node* add(Key key, Value value) {
+		_Node* cur = make_mut(&this->root);
 		for (int h = this->height - 1; h >= 0; h--) {
 			int br = this->cursor & (1 << h) ? 1 : 0;
-			if (old_pointer != nullptr) {
-				new_pointer->children[!br] = old_pointer->children[!br];
-				old_pointer = old_pointer->children[br];
+			if (cur->children[br] == nullptr) {
+				cur->children[br] = make_shared<_Node>();
+				cur = cur->children[br].get();
+			} else {
+				cur = make_mut(&cur->children[br]);
 			}
-			new_pointer->children[br] = make_shared<_Node>();
-			new_pointer = new_pointer->children[br];
 		}
-		new_pointer->index = this->cursor;
-		new_pointer->key = key;
-		new_pointer->value = value;
-		auto new_tree = this->new_tree();
-		new_tree->root = new_root;
-		new_tree->cursor++;
-		pair<shared_ptr<OrderTree>, shared_ptr<_Node>> ret = {new_tree, new_pointer};
-		return ret;
+		cur->index = this->cursor++;
+		cur->key = key;
+		cur->value = value;
+
+//		auto old_pointer = this->root;     // 原樹的指標
+//		auto new_pointer = make_shared<_Node>();     // 正在創建的新樹的指標
+//		auto new_root = new_pointer;
+//		for (int h = this->height - 1; h >= 0; h--) {
+//			int br = this->cursor & (1 << h) ? 1 : 0;
+//			if (old_pointer != nullptr) {
+//				new_pointer->children[!br] = old_pointer->children[!br];
+//				old_pointer = old_pointer->children[br];
+//			}
+//			new_pointer->children[br] = make_shared<_Node>();
+//			new_pointer = new_pointer->children[br];
+//		}
+//		new_pointer->index = this->cursor;
+//		new_pointer->key = key;
+//		new_pointer->value = value;
+//		auto new_tree = this->new_tree();
+//		new_tree->root = new_root;
+//		new_tree->cursor++;
+//		pair<shared_ptr<OrderTree>, shared_ptr<_Node>> ret = {new_tree, new_pointer};
+//		return ret;
 	}
 
 	// 創建一個新的樹， node 的值被修改爲 value, 鍵被修改爲 key
