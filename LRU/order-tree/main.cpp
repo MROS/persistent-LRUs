@@ -46,31 +46,21 @@ int main() {
 	put_ret = br1->put(front, front->key, 104);
 	front = put_ret.new_node;
 	br1->show();
-//
-//	cout << "測試 get" << endl;
-//	// 測試 get
-//    auto ret = order_tree->get(nodes[0]);
-//    order_tree = ret.new_tree;
-//    order_tree->show();
-//	order_tree->show_order();
-//
-//    ret = order_tree->get(nodes[1]);
-//    order_tree = ret.new_tree;
-//    order_tree->show();
-//	order_tree->show_order();
-//
-//    ret = order_tree->get(nodes[2]);
-//    order_tree = ret.new_tree;
-//    order_tree->show();
-//	order_tree->show_order();
-//
-//    ret = order_tree->get(nodes[3]);
-//    order_tree = ret.new_tree;
-//    order_tree->show();
-//	order_tree->show_order();
-//
-//	ret = order_tree->get(nodes[0]);
-//	order_tree = ret.new_tree;
-//	order_tree->show();
-//	order_tree->show_order();
+
+	cout << "測試 get" << endl;
+	// 測試 get
+	auto br2 = order_tree->new_version();
+	br2->show();
+
+	br2->get(nodes[0]);
+    br2->show();
+
+    br2->get(nodes[1]);
+    br2->show();
+
+	br2->get(nodes[2]);
+    br2->show();
+
+    br2->get(nodes[3]);
+    br2->show();
 }

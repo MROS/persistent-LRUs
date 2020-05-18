@@ -40,15 +40,8 @@ struct PutRet {
 };
 
 template<typename Key, typename Value>
-struct KeyValue {
-    Key key;
-    Value value;
-};
-
-template<typename Key, typename Value>
 class OrderTree {
 	typedef OrderTreeNode<Key, Value> _Node;
-	typedef KeyValue<Key, Value> _KeyValue;
 private:
     shared_ptr<OrderTree> new_tree() const {
         auto tree = make_shared<OrderTree>();
@@ -78,9 +71,8 @@ private:
 	// 將 node 底下的葉子塞入 v 中。是 order 的輔助函數
 	static void _order(shared_ptr<_Node> *node, int height, shared_ptr<deque<shared_ptr<_Node>>> v) {
     	if (height == 0) {
-    		make_mut(node);
-    		v->push_back(*node);
-    	} else {
+    		v->push_back(make_shared<_Node>(**node));
+		} else {
     		auto children = (*node)->children;
     		if (children[0] != nullptr) {
     			_order(&children[0], height - 1, v);
