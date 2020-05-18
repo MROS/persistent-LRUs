@@ -163,48 +163,24 @@ public:
 		cur->index = this->cursor++;
 		cur->key = key;
 		cur->value = value;
-
-//		auto old_pointer = this->root;     // 原樹的指標
-//		auto new_pointer = make_shared<_Node>();     // 正在創建的新樹的指標
-//		auto new_root = new_pointer;
-//		for (int h = this->height - 1; h >= 0; h--) {
-//			int br = this->cursor & (1 << h) ? 1 : 0;
-//			if (old_pointer != nullptr) {
-//				new_pointer->children[!br] = old_pointer->children[!br];
-//				old_pointer = old_pointer->children[br];
-//			}
-//			new_pointer->children[br] = make_shared<_Node>();
-//			new_pointer = new_pointer->children[br];
-//		}
-//		new_pointer->index = this->cursor;
-//		new_pointer->key = key;
-//		new_pointer->value = value;
-//		auto new_tree = this->new_tree();
-//		new_tree->root = new_root;
-//		new_tree->cursor++;
-//		pair<shared_ptr<OrderTree>, shared_ptr<_Node>> ret = {new_tree, new_pointer};
-//		return ret;
+		return cur;
 	}
 
 	// 創建一個新的樹， node 的值被修改爲 value, 鍵被修改爲 key
-	pair<shared_ptr<OrderTree>, shared_ptr<_Node>> change_node(shared_ptr<_Node> node, Key key, Value value) {
-		auto old_pointer = this->root;      // 原樹的指標
-		auto new_pointer = make_shared<_Node>();     // 正在創建的新樹的指標
-		auto new_root = new_pointer;
+	_Node* change_node(_Node* node, Key key, Value value) {
+		_Node* cur = make_mut(&this->root);
 		for (int h = this->height - 1; h >= 0; h--) {
 			int br = node->index & (1 << h) ? 1 : 0;
-			new_pointer->children[!br] = old_pointer->children[!br];
-			old_pointer = old_pointer->children[br];
-			new_pointer->children[br] = make_shared<_Node>();
-			new_pointer = new_pointer->children[br];
+			if (cur->children[br] == nullptr) {
+				cur->children[br] = make_shared<_Node>();
+				cur = cur->children[br].get();
+			} else {
+				cur = make_mut(&cur->children[br]);
+			}
 		}
-		new_pointer->key = key;
-		new_pointer->value = value;
-		new_pointer->index = node->index;
-		shared_ptr<OrderTree> new_tree = this->new_tree();
-		new_tree->root = new_root;
-		pair<shared_ptr<OrderTree>, shared_ptr<_Node>> ret = {new_tree, new_pointer};
-		return ret;
+		cur->key = key;
+		cur->value = value;
+		return cur;
 	}
 
 
