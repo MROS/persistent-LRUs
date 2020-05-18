@@ -197,7 +197,7 @@ public:
 		if (h >= 0) {
 			int br = index & (1 << h) ? 1 : 0;
 			remove(&cur->children[br], index, h - 1);
-			if (cur->children[br] == nullptr && cur->children[!br] == nullptr) {
+			if (cur->children[br] == nullptr && cur->children[!br] == nullptr && (*node) != root) {
 				take(node);
 			}
 		} else {

@@ -1,14 +1,14 @@
-const MAX = 1000;
+const MAX = 10;
 
 function rand(max=MAX) {
     return parseInt(Math.random() * max);
 }
 
-console.log(15000);
+console.log(150);
 console.log();
 
-for (let i = 0; i < 3000; i++) {
-    let amount = rand();
+for (let i = 0; i < 30; i++) {
+    let amount = rand(1000);
     console.log(`batch ${amount}`);
     for (let j = 0; j < amount; j++) {
         if (rand() % 2 == 0) {

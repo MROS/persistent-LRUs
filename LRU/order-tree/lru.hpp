@@ -96,7 +96,7 @@ public:
 //					if (node == nullptr) {
 //						printf("node is nullptr\n");
 //					} else {
-//						printf("node is (%d, %d, %d)", node->key, node->value, node->index);
+//						printf("node is (%d, %d, %d)\n", node->key, node->value, node->index);
 //					}
 					auto put_ret = new_tree->put(node, put.key, put.value);
 					if (put_ret.deleted_key != nullopt) {
