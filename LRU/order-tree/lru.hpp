@@ -11,14 +11,16 @@ using namespace std;
 template<typename Key, typename Value>
 class OrderTreeLRU : public LRU<Key, Value> {
 private:
+	typedef LRU<Key, Value> Parent;
+	typedef variant<Get<Key>, Put<Key, Value>> Cmd;
+	typedef OrderTreeNode<Key, Value> _Node;
+
     size_t capacity{};
     size_t used{};
     immer::map<Key, shared_ptr<OrderTreeNode<Key, Value>>> map;
 	shared_ptr<OrderTree<Key, Value>> order_tree{};
 
 public:
-	typedef LRU<Key, Value> Parent;
-	typedef variant<Get<Key>, Put<Key, Value>> Cmd;
 
     explicit OrderTreeLRU(size_t capacity) {
 		this->capacity = capacity;
@@ -26,7 +28,7 @@ public:
 		int h = log2(capacity) + 2;
 //		printf("capacity = %lu, height = %d\n", capacity, h);
 		this->order_tree = make_shared<OrderTree<Key, Value>>(h);
-		this->map = immer::map<Key, shared_ptr<OrderTreeNode<Key, Value>>>{};
+		this->map = immer::map<Key, _Node*>{};
     }
     explicit OrderTreeLRU(OrderTreeLRU *lru) {
     	this->capacity = lru->capacity;
@@ -38,9 +40,6 @@ public:
 	shared_ptr<Parent> create(size_t capacity) {
 		return make_shared<OrderTreeLRU>(capacity);
 	}
-    shared_ptr<OrderTreeLRU> put(int key, int value) {
-    	return nullptr;
-	}
 	optional<Value> read_only_get(Key &key) {
 		shared_ptr<OrderTreeNode<Key, Value>> node = map[key];
 		if (node == nullptr) {
@@ -50,19 +49,18 @@ public:
 		}
 	}
 	shared_ptr<Parent> batch_operate(vector<Cmd> &cmds) {
-		auto new_tree = order_tree;
+		auto new_tree = order_tree->new_version();
 		auto new_cache = make_shared<OrderTreeLRU<Key, Value>>(this);
 		auto new_map = map;
 
 		for (auto &cmd: cmds) {
 			if (std::get_if<Get<Key>>(&cmd) != nullptr) {
 				Get<Key> get = std::get<Get<Key>>(cmd);
-				shared_ptr<OrderTreeNode<Key, Value>> node = new_map[get.key];
+				_Node* node = new_map[get.key];
 				if (node == nullptr) {
 					continue;
 				} else {
 					auto ret = new_tree->get(node);
-					new_tree = ret.new_tree;
 					if (ret.reorder != nullptr) {
 						new_map = {};
 						for (auto node : *ret.reorder) {
@@ -70,9 +68,7 @@ public:
 						}
 						for (auto iter = new_map.begin(); iter != new_map.end(); iter++) {
 							auto node = iter->second;
-//							printf("(%d, %d, %d, %d) ", iter->first, node->key, node->value, node->index);
 						}
-//						puts("");
 					} else {
 						new_map = new_map.set(get.key, ret.new_node);
 					}

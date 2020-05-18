@@ -16,41 +16,36 @@ int main() {
         order_tree->show();
 		order_tree->show_order();
     }
-    order_tree->change_node(nodes[0], 100, 100);
-	order_tree->show();
-	order_tree->show_order();
-	for (int i = 0; i < 3; i++) {
-		order_tree->to_head(nodes[i]);
-		order_tree->show();
-		order_tree->show_order();
-	}
-//    cout << "測試 put" << endl;
-//    // 測試 put
-//    auto br1 = order_tree;
-//	auto put_ret = br1->put(nodes[0], nodes[0]->key, 100);
-//	br1 = put_ret.new_tree;
-//	auto front = put_ret.new_node;
-//	br1->show();
-//
-//	put_ret = br1->put(front, front->key, 101);
-//	br1 = put_ret.new_tree;
-//	front = put_ret.new_node;
-//	br1->show();
-//
-//	put_ret = br1->put(front, front->key, 102);
-//	br1 = put_ret.new_tree;
-//	front = put_ret.new_node;
-//	br1->show();
-//
-//	put_ret = br1->put(front, front->key, 103);
-//	br1 = put_ret.new_tree;
-//	br1->show();
-//	front = put_ret.reorder->operator[](3);
-//
-//	put_ret = br1->put(front, front->key, 104);
-//	br1 = put_ret.new_tree;
-//	front = put_ret.new_node;
-//	br1->show();
+//  order_tree->change_node(nodes[0], 100, 100);
+//	order_tree->show();
+//	order_tree->show_order();
+//	for (int i = 0; i < 3; i++) {
+//		order_tree->to_head(nodes[i]);
+//		order_tree->show();
+//		order_tree->show_order();
+//	}
+    cout << "測試 put" << endl;
+    // 測試 put
+    auto br1 = order_tree->new_version();
+	auto put_ret = br1->put(nodes[0], nodes[0]->key, 100);
+	auto front = put_ret.new_node;
+	br1->show();
+
+	put_ret = br1->put(front, front->key, 101);
+	front = put_ret.new_node;
+	br1->show();
+
+	put_ret = br1->put(front, front->key, 102);
+	front = put_ret.new_node;
+	br1->show();
+
+	put_ret = br1->put(front, front->key, 103);
+	br1->show();
+	front = put_ret.reorder->operator[](3);
+
+	put_ret = br1->put(front, front->key, 104);
+	front = put_ret.new_node;
+	br1->show();
 //
 //	cout << "測試 get" << endl;
 //	// 測試 get
