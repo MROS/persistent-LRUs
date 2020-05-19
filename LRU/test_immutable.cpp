@@ -1,4 +1,5 @@
 #include <iostream>
+#include <chrono>
 #include <vector>
 #include <string>
 #include <fstream>
@@ -14,7 +15,10 @@ string DIR = "test_case/immutable/";
 vector<string> cases = {
 //	"1",
 //	"2",
-	"im"
+//	"im",
+	"1-block",
+//	"2-block",
+//	"3-block"
 //	"3",
 //	"4",
 //	"5"
@@ -142,17 +146,19 @@ string to_s(optional<int> x) {
 void test(LRU<int, int> &lru_base) {
 	for (auto name : cases) {
 
-		cout << "測試 " << name << " 開始" << endl;
+		cerr << "測試 " << name << " 開始" << endl;
 		auto tc = read_input(name);
 		auto ans = read_ans(name);
+		cout << "測資讀取完畢" << endl;
 
 		vector<shared_ptr<LRU<int, int>>> versions = { lru_base.create(tc.capacity) };
 
+		chrono::steady_clock::time_point begin = chrono::steady_clock::now();
 		int b = 0;
 		int r = 0;
 		for (auto op: tc.ops) {
 			if (get_if<BatchOp>(&op) != nullptr) {
-				cout << "第 " << b << " 組批量操作" << endl;
+				cerr << "第 " << b << " 組批量操作" << endl;
 				auto batch_op = get<BatchOp>(op);
 				int id = batch_op.id;
 				versions.push_back(versions[id]->batch_operate(batch_op.cmds));
@@ -171,7 +177,9 @@ void test(LRU<int, int> &lru_base) {
 				r++;
 			}
 		}
+		chrono::steady_clock::time_point end = chrono::steady_clock::now();
 		cout << "測試 " << name << " 結束" << endl;
+		cout << "耗時 = " << std::chrono::duration_cast<std::chrono::microseconds>(end - begin).count() << "[µs]" << std::endl;
 	}
 }
 
@@ -200,12 +208,12 @@ void print_ans(LRU<int, int> &lru_base, string name) {
 			for (int i = 0; i < keys.size(); i++) {
 				auto ret = versions[id]->read_only_get(keys[i]);
 				if (ret == nullopt) {
-					cout << "null" << endl;
+					cerr << "null" << endl;
 				} else {
-					cout << *ret << endl;
+					cerr << *ret << endl;
 				}
 			}
-			cout << endl;
+			cerr << endl;
 			r++;
 		}
 	}
@@ -219,6 +227,7 @@ int main(int argc, char *argv[]) {
 //	print_ans(simple_copy_lru, string("3"));
 //	print_ans(simple_copy_lru, string("4"));
 //	print_ans(simple_copy_lru, string("im"));
+//	print_ans(simple_copy_lru, string("1-block"));
 //	SimpleCopyLRU<int, int> simple_copy_lru;
 //	test(simple_copy_lru);
 	OrderTreeLRU<int, int> order_tree_lru;

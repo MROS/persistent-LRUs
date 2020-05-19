@@ -1,6 +1,8 @@
 cmake_minimum_required(VERSION 3.0.0)
 project(LRU VERSION 0.1.0)
 
+#SET(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -O2")
+
 set(CMAKE_CXX_STANDARD 17)
 add_executable(lru_test test.cpp LRU.h
         simple-copy/lru.hpp simple-copy/mutable-lru.hpp
