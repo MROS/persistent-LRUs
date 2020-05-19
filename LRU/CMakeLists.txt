@@ -7,6 +7,11 @@ add_executable(lru_test test.cpp LRU.h
         rb-tree/lru.hpp rb-tree/node.hpp rb-tree/rb_tree.hpp
         order-tree/lru.hpp order-tree/order_tree.hpp
         )
+add_executable(immutable_lru_test test_immutable.cpp LRU.h
+        simple-copy/lru.hpp simple-copy/mutable-lru.hpp
+        rb-tree/lru.hpp rb-tree/node.hpp rb-tree/rb_tree.hpp
+        order-tree/lru.hpp order-tree/order_tree.hpp
+        )
 
 set(CPACK_PROJECT_NAME ${PROJECT_NAME})
 set(CPACK_PROJECT_VERSION ${PROJECT_VERSION})
