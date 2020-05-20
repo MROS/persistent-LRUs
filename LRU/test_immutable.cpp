@@ -4,6 +4,7 @@
 #include <string>
 #include <fstream>
 #include <variant>
+#include "memory.hpp"
 #include "simple-copy/lru.hpp"
 #include "rb-tree/lru.hpp"
 #include "order-tree/lru.hpp"
@@ -24,16 +25,37 @@ vector<string> change_cache = {
 	"cache-40000",
 	"cache-45000",
 	"cache-50000",
-	"cache-55000",
-	"cache-60000",
-	"cache-65000",
-	"cache-70000",
-	"cache-75000",
-	"cache-80000",
-	"cache-85000",
-	"cache-90000",
-	"cache-95000",
-	"cache-100000",
+//	"cache-55000",
+//	"cache-60000",
+//	"cache-65000",
+//	"cache-70000",
+//	"cache-75000",
+//	"cache-80000",
+//	"cache-85000",
+//	"cache-90000",
+//	"cache-95000",
+//	"cache-100000",
+};
+
+vector<string> change_hitrate = {
+	"hitrate-0.1",
+	"hitrate-0.2",
+	"hitrate-0.3",
+	"hitrate-0.4",
+	"hitrate-0.5",
+	"hitrate-0.6",
+	"hitrate-0.7",
+	"hitrate-0.8",
+	"hitrate-0.9",
+	"hitrate-0.10",
+};
+
+vector<string> change_putrate = {
+	"putrate-0.05",
+	"putrate-0.25",
+	"putrate-0.5",
+	"putrate-0.75",
+	"putrate-0.95",
 };
 
 vector<string> cases = {
@@ -167,6 +189,7 @@ string to_s(optional<int> x) {
 	}
 }
 
+
 void test(LRU<int, int> &lru_base) {
 	for (auto name : cases) {
 
@@ -174,10 +197,20 @@ void test(LRU<int, int> &lru_base) {
 		auto tc = read_input(name);
 		auto ans = read_ans(name);
 		cout << "測資讀取完畢" << endl;
+		auto init_lru = lru_base.create(tc.capacity);
 
-		vector<shared_ptr<LRU<int, int>>> versions = { lru_base.create(tc.capacity) };
+		// 先裝滿快取，注意這會影響輸出結果
+		vector<Cmd> init_cmds;
+		for (int i = 0; i < tc.capacity; i++) {
+			Put<int, int> put{i, i};
+			init_cmds.push_back(put);
+		}
+		auto full_lru = init_lru->batch_operate(init_cmds);
+
+		vector<shared_ptr<LRU<int, int>>> versions = { full_lru };
 
 		chrono::steady_clock::time_point begin = chrono::steady_clock::now();
+		int memory_begin = memory_used();
 		int b = 0;
 		int r = 0;
 		for (auto op: tc.ops) {
@@ -202,9 +235,11 @@ void test(LRU<int, int> &lru_base) {
 			}
 		}
 		chrono::steady_clock::time_point end = chrono::steady_clock::now();
+		int memory_end = memory_used();
 		cout << "測試 " << name << " 結束" << endl;
 		double duration = (double)chrono::duration_cast<std::chrono::microseconds>(end - begin).count();
-		cout << "耗時 = " << duration / 1000000 << "[s]" << std::endl;
+		cout << "耗時 = " << duration / 1000000 << " [s]" << std::endl;
+		cout << "記憶體用量 = " << memory_end - memory_begin << " [kb]" << std::endl;
 	}
 }
 
@@ -246,7 +281,9 @@ void print_ans(LRU<int, int> &lru_base, string name) {
 }
 
 int main(int argc, char *argv[]) {
-	cases.insert(cases.end(), change_cache.begin(), change_cache.end());
+//	cases.insert(cases.end(), change_cache.begin(), change_cache.end());
+//	cases.insert(cases.end(), change_hitrate.begin(), change_hitrate.end());
+	cases.insert(cases.end(), change_putrate.begin(), change_putrate.end());
 //	SimpleCopyLRU<int, int> simple_copy_lru;
 //	test(simple_copy_lru);
 //	print_ans(simple_copy_lru, string("1"));
@@ -255,10 +292,13 @@ int main(int argc, char *argv[]) {
 //	print_ans(simple_copy_lru, string("4"));
 //	print_ans(simple_copy_lru, string("im"));
 //	print_ans(simple_copy_lru, string("1-block"));
-	// SimpleCopyLRU<int, int> simple_copy_lru;
-	// test(simple_copy_lru);
+	cout << "########### 測試 simple_copy #################" << endl;
+	SimpleCopyLRU<int, int> simple_copy_lru;
+	test(simple_copy_lru);
+	cout << "########### 測試 order_tree #################" << endl;
 	OrderTreeLRU<int, int> order_tree_lru;
 	test(order_tree_lru);
+	cout << "########### 測試 rb_tree #################" << endl;
 	RBTreeLRU<int, int> rb_tree_lru;
 	test(rb_tree_lru);
 }

@@ -3,6 +3,7 @@
 #include "../LRU.h"
 #include <optional>
 #include <variant>
+#include <memory>
 
 template<typename Key, typename Value>
 struct DoublyLinkedNode {
@@ -74,26 +75,39 @@ public:
 
     LRUCache() = default;
 
-    LRUCache copy() {
-    	LRUCache<Key, Value> new_cache(capacity);
-		new_cache.used = used;
-		new_cache.map = {};
+    ~LRUCache() {
 		auto iter = lru_head;
 		if (iter == nullptr) {
-			new_cache.lru_head = nullptr;
-			new_cache.lru_tail = nullptr;
+			return;
+		} else {
+			while (iter != lru_tail) {
+				iter = iter->next;
+				delete(iter->last);
+			}
+			delete(iter);
+		}
+    }
+
+    std::shared_ptr<LRUCache> copy() {
+    	auto new_cache = std::make_shared<LRUCache<Key, Value>>(capacity);
+		new_cache->used = used;
+		new_cache->map = {};
+		auto iter = lru_head;
+		if (iter == nullptr) {
+			new_cache->lru_head = nullptr;
+			new_cache->lru_tail = nullptr;
 		} else {
 			auto new_iter = new _Node(iter);
-			new_cache.map[new_iter->key] = new_iter;
-			new_cache.lru_head = new_iter;
+			new_cache->map[new_iter->key] = new_iter;
+			new_cache->lru_head = new_iter;
 			while (iter != lru_tail) {
 				iter = iter->next;
 				new_iter->next = new _Node(iter);
 				new_iter->next->last = new_iter;
 				new_iter = new_iter->next;
-				new_cache.map[new_iter->key] = new_iter;
+				new_cache->map[new_iter->key] = new_iter;
 			}
-			new_cache.lru_tail = new_iter;
+			new_cache->lru_tail = new_iter;
 		}
     	return new_cache;
     }
