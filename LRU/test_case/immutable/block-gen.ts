@@ -14,35 +14,62 @@ function rand(max: number) {
     return Math.floor(Math.random() * max);
 }
 
-const tests: TEST[] = [
-    {
-        name: "1-block",
-        key_range: 1500,
-        value_range: 1000,
-        batch_size: 50,
-        cache_size: 1000,
-        block_number: 300,
-        miner_number: 10
-    },
-    {
-        name: "2-block",
-        key_range: 15000,
-        value_range: 10000,
-        batch_size: 500,
-        cache_size: 10000,
-        block_number: 3000,
-        miner_number: 10
-    },
-    {
-        name: "3-block",
-        key_range: 150000,
-        value_range: 10000,
-        batch_size: 500,
-        cache_size: 100000,
-        block_number: 3000,
-        miner_number: 10
+let tests: TEST[] = [];
+
+// batch_size 相同、cache_size 變化，命中率固定在 50%
+for (let i = 0; i <= 20; i++) {
+    let batch_size = 500;
+    let block_number = 1000;
+    let miner_number = 10;
+    let hit_rate = 0.5;
+    let cache_size;
+    if (i == 0) {
+        cache_size = batch_size;
+    } else {
+        cache_size = batch_size * i * 10;
     }
-];
+    let name = `cache-${cache_size}`;
+    tests.push({
+        name,
+        key_range: cache_size / hit_rate,
+        value_range: 10000,
+        cache_size,
+        batch_size,
+        block_number,
+        miner_number,
+    });
+}
+
+
+// const tests: TEST[] = [
+//     {
+//         name: "1-block",
+//         key_range: 1500,
+//         value_range: 1000,
+//         batch_size: 50,
+//         cache_size: 1000,
+//         block_number: 300,
+//         miner_number: 10
+//     },
+//     {
+//         name: "2-block",
+//         key_range: 15000,
+//         value_range: 10000,
+//         batch_size: 500,
+//         cache_size: 10000,
+//         block_number: 3000,
+//         miner_number: 10
+//     },
+//     {
+//         name: "3-block",
+//         key_range: 150000,
+//         value_range: 10000,
+//         batch_size: 500,
+//         cache_size: 100000,
+//         block_number: 3000,
+//         miner_number: 10
+//     }
+// ];
 
 interface Block {
     id: number;
@@ -118,5 +145,6 @@ function gen_test(test: TEST) {
 }
 
 for (let test of tests) {
+    console.log(`${test.name}`);
     gen_test(test);
 }

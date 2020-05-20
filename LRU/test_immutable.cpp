@@ -12,11 +12,35 @@ using namespace std;
 
 string DIR = "test_case/immutable/";
 
+vector<string> change_cache = {
+	"cache-500",
+	"cache-5000",
+	"cache-10000",
+	"cache-15000",
+	"cache-20000",
+	"cache-25000",
+	"cache-30000",
+	"cache-35000",
+	"cache-40000",
+	"cache-45000",
+	"cache-50000",
+	"cache-55000",
+	"cache-60000",
+	"cache-65000",
+	"cache-70000",
+	"cache-75000",
+	"cache-80000",
+	"cache-85000",
+	"cache-90000",
+	"cache-95000",
+	"cache-100000",
+};
+
 vector<string> cases = {
 //	"1",
 //	"2",
 //	"im",
-	"1-block",
+	// "1-block",
 //	"2-block",
 //	"3-block"
 //	"3",
@@ -179,7 +203,8 @@ void test(LRU<int, int> &lru_base) {
 		}
 		chrono::steady_clock::time_point end = chrono::steady_clock::now();
 		cout << "測試 " << name << " 結束" << endl;
-		cout << "耗時 = " << std::chrono::duration_cast<std::chrono::microseconds>(end - begin).count() << "[µs]" << std::endl;
+		double duration = (double)chrono::duration_cast<std::chrono::microseconds>(end - begin).count();
+		cout << "耗時 = " << duration / 1000000 << "[s]" << std::endl;
 	}
 }
 
@@ -219,7 +244,9 @@ void print_ans(LRU<int, int> &lru_base, string name) {
 	}
 	cerr << "輸出 " << name << " 結束" << endl;
 }
+
 int main(int argc, char *argv[]) {
+	cases.insert(cases.end(), change_cache.begin(), change_cache.end());
 //	SimpleCopyLRU<int, int> simple_copy_lru;
 //	test(simple_copy_lru);
 //	print_ans(simple_copy_lru, string("1"));
@@ -228,8 +255,8 @@ int main(int argc, char *argv[]) {
 //	print_ans(simple_copy_lru, string("4"));
 //	print_ans(simple_copy_lru, string("im"));
 //	print_ans(simple_copy_lru, string("1-block"));
-//	SimpleCopyLRU<int, int> simple_copy_lru;
-//	test(simple_copy_lru);
+	// SimpleCopyLRU<int, int> simple_copy_lru;
+	// test(simple_copy_lru);
 	OrderTreeLRU<int, int> order_tree_lru;
 	test(order_tree_lru);
 	RBTreeLRU<int, int> rb_tree_lru;
