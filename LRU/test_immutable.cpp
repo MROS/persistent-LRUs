@@ -38,6 +38,7 @@ vector<string> change_cache = {
 };
 
 vector<string> change_hitrate = {
+	"hitrate-0.0",
 	"hitrate-0.1",
 	"hitrate-0.2",
 	"hitrate-0.3",
@@ -47,7 +48,7 @@ vector<string> change_hitrate = {
 	"hitrate-0.7",
 	"hitrate-0.8",
 	"hitrate-0.9",
-	"hitrate-0.10",
+//	"hitrate-0.10",
 };
 
 vector<string> change_putrate = {
@@ -55,7 +56,7 @@ vector<string> change_putrate = {
 	"putrate-0.25",
 	"putrate-0.5",
 	"putrate-0.75",
-	"putrate-0.95",
+	"putrate-1",
 };
 
 vector<string> cases = {
@@ -281,9 +282,9 @@ void print_ans(LRU<int, int> &lru_base, string name) {
 }
 
 int main(int argc, char *argv[]) {
-//	cases.insert(cases.end(), change_cache.begin(), change_cache.end());
-//	cases.insert(cases.end(), change_hitrate.begin(), change_hitrate.end());
-	cases.insert(cases.end(), change_putrate.begin(), change_putrate.end());
+	// cases.insert(cases.end(), change_cache.begin(), change_cache.end());
+	 cases.insert(cases.end(), change_hitrate.begin(), change_hitrate.end());
+//	cases.insert(cases.end(), change_putrate.begin(), change_putrate.end());
 //	SimpleCopyLRU<int, int> simple_copy_lru;
 //	test(simple_copy_lru);
 //	print_ans(simple_copy_lru, string("1"));

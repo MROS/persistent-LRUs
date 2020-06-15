@@ -17,20 +17,20 @@ function rand(max: number) {
 
 let tests: TEST[] = [];
 
-// batch_size 相同、cache_size 變化，命中率固定在 50%
+// // batch_size 相同、cache_size 變化，命中率固定在 100% 、put_rate 100%
 // for (let i = 0; i <= 20; i++) {
 //     let batch_size = 500;
-//     let put_rate = 0.5;
+//     let put_rate = 1.0;
 //     let block_number = 1000;
 //     let miner_number = 10;
-//     let hit_rate = 0.5;
+//     let hit_rate = 1.0;
 //     let cache_size;
 //     if (i == 0) {
 //         cache_size = batch_size;
 //     } else {
 //         cache_size = batch_size * i * 10;
 //     }
-//     let name = `cache-${cache_size}`;
+//     let name = `p1-cache-${cache_size}`;
 //     tests.push({
 //         name,
 //         key_range: cache_size / hit_rate,
@@ -44,78 +44,48 @@ let tests: TEST[] = [];
 // }
 
 // batch_size 相同、cache_size 固定爲 30000，命中率變化
-// for (let i = 1; i <= 10; i++) {
-//     let batch_size = 500;
-//     let put_rate = 0.5;
-//     let block_number = 1000;
-//     let miner_number = 10;
-//     let hit_rate = 0.1 * i;
-//     let cache_size = 30000;
-//     let name = `hitrate-0.${i}`;
-//     tests.push({
-//         name,
-//         key_range: cache_size / hit_rate,
-//         value_range: 10000,
-//         cache_size,
-//         batch_size,
-//         block_number,
-//         miner_number,
-//         put_rate,
-//     });
-// }
-
-// batch_size 相同、cache_size 固定爲 30000，命中率固定爲 1.0，put/get 比例改變
-{
-    let put_rates = [0.05, 0.25, 0.5, 0.75, 0.95];
-    for (let put_rate of put_rates) {
-        let batch_size = 500;
-        let block_number = 1000;
-        let miner_number = 10;
-        let hit_rate = 1.0;
-        let cache_size = 30000;
-        let name = `putrate-${put_rate}`;
-        tests.push({
-            name,
-            key_range: cache_size / hit_rate,
-            value_range: 10000,
-            cache_size,
-            batch_size,
-            block_number,
-            miner_number,
-            put_rate
-        });
-    }
+for (let i = 0; i < 10; i++) {
+    let batch_size = 500;
+    let put_rate = 0.5;
+    let block_number = 1000;
+    let miner_number = 10;
+    let hit_rate = 0.05 + 0.1 * i;
+    let cache_size = 30000;
+    let name = `hitrate-0.${i}`;
+    tests.push({
+        name,
+        key_range: cache_size / hit_rate,
+        value_range: 10000,
+        cache_size,
+        batch_size,
+        block_number,
+        miner_number,
+        put_rate,
+    });
 }
 
-// const tests: TEST[] = [
-//     {
-//         name: "1-block",
-//         key_range: 1500,
-//         value_range: 1000,
-//         batch_size: 50,
-//         cache_size: 1000,
-//         block_number: 300,
-//         miner_number: 10
-//     },
-//     {
-//         name: "2-block",
-//         key_range: 15000,
-//         value_range: 10000,
-//         batch_size: 500,
-//         cache_size: 10000,
-//         block_number: 3000,
-//         miner_number: 10
-//     },
-//     {
-//         name: "3-block",
-//         key_range: 150000,
-//         value_range: 10000,
-//         batch_size: 500,
-//         cache_size: 100000,
-//         block_number: 3000,
-//         miner_number: 10
+// batch_size 相同、cache_size 固定爲 30000，命中率固定爲 1.0，put/get 比例改變
+// {
+//     let put_rates = [0.05, 0.25, 0.5, 0.75, 1.0];
+//     for (let put_rate of put_rates) {
+//         let batch_size = 500;
+//         let block_number = 1000;
+//         let miner_number = 10;
+//         let hit_rate = 1.0;
+//         let cache_size = 30000;
+//         let name = `putrate-${put_rate}`;
+//         tests.push({
+//             name,
+//             key_range: cache_size / hit_rate,
+//             value_range: 10000,
+//             cache_size,
+//             batch_size,
+//             block_number,
+//             miner_number,
+//             put_rate
+//         });
 //     }
-// ];
+// }
 
 interface Block {
     id: number;

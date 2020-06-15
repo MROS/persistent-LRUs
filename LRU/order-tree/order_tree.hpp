@@ -149,7 +149,8 @@ public:
     _Node* add(Key key, Value value) {
 		_Node* cur = make_mut(&this->root);
 		for (int h = this->height - 1; h >= 0; h--) {
-			int br = this->cursor & (1 << h) ? 1 : 0;
+			// int br = this->cursor & (1 << h) ? 1 : 0;
+			int br = (this->cursor >> h) & 1;
 			if (cur->children[br] == nullptr) {
 				cur->children[br] = make_shared<_Node>();
 				cur = cur->children[br].get();
@@ -167,7 +168,8 @@ public:
 	_Node* change_node(_Node* node, Key key, Value value) {
 		_Node* cur = make_mut(&this->root);
 		for (int h = this->height - 1; h >= 0; h--) {
-			int br = node->index & (1 << h) ? 1 : 0;
+			// int br = node->index & (1 << h) ? 1 : 0;
+			int br = (node->index >> h) & 1;
 			if (cur->children[br] == nullptr) {
 //				cur->children[br] = make_shared<_Node>();
 //				cur = cur->children[br].get();
@@ -195,7 +197,8 @@ public:
 		}
 		_Node *cur = make_mut(node);
 		if (h >= 0) {
-			int br = index & (1 << h) ? 1 : 0;
+			// int br = index & (1 << h) ? 1 : 0;
+			int br = (index >> h) & 1;
 			remove(&cur->children[br], index, h - 1);
 			if (cur->children[br] == nullptr && cur->children[!br] == nullptr && (*node) != root) {
 				take(node);
