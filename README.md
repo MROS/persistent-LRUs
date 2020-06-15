@@ -1,29 +1,27 @@
-# 淺狀態區塊鏈
+# 持久化 LRU 比較
 
-## 依賴函式庫
+## 架構
+請直接看 `LRU` 資料夾。
 
-- TOML 解析：[cpptoml](https://github.com/skystrife/cpptoml)
-- 序列化：[cereal](http://uscilab.github.io/cereal/index.html)
-- 異步、網路：[asio](https://www.boost.org/doc/libs/1_72_0/doc/html/boost_asio.html)
-- vector commitment: [edrax](https://github.com/starzyp/vcs)
+`LRU.h` 定義了一個虛類 `LRU`，`simple-copy`, `rb-tree`, `order-tree` 三個資料夾下都實作了這個虛類。
 
-## 安裝
+`test.cpp` 用來執行 `test_case` 中的測試，`test_immutable.cpp` 用來執行 `test_case/immutable` 中的測試。這兩個的差異在於 `test_immutable.cpp` 測試到持久化的性質，`test.cpp` 則否。至於如何調整測試，請進到程式碼中將想要測試的資料的註解取消。
 
-先分別安裝 cpptoml, cereal, boost::asio，再以以下指令安裝 edrax 的依賴
+## 執行
 
-``` sh
-git clone git://github.com/herumi/xbyak.git        # ate-pairing 依賴 xbyak
-git clone git://github.com/herumi/ate-pairing.git  # edrax 依賴 ate-pairing
-cd ate-pairing
-make           # 編譯 ate-pairing 以供主程式與它鏈接
-```
-
-``` sh
-# 回到項目根目錄
+``` bash
+git clone https://github.com/MROS/persistent-LRUs # 下載
+cd LRU
 mkdir build
 cd build
-cmake ..
-make
+cmake ..                       # 用 cmake 生成 Makefile
+make                           # 編譯
+ln -s ../test_case/ test_case  # 符號連結測資所在目錄
+./lru_test                     # 部分測試
+./lru_test_immutable           # 跑 benchmark
 ```
 
-就可以看到 `node` 程式
+## 生成測資
+
+`test_case/` 跟 `test_case/immutable` 各有一個輔助測資生成程式 `gen.js` 跟 `block-gen.ts` ，
+請分別以 node 跟 ts-node 來執行。要生成想要的測資，也請自行修改源碼。
