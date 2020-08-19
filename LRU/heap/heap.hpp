@@ -3,6 +3,7 @@
 #include <string>
 #include <queue>
 #include <cstdio>
+#include "../util.hpp"
 
 using namespace std;
 
@@ -22,7 +23,7 @@ template<typename Key>
 class Heap {
 public:
 	typedef HeapNode<Key> _Node;
-private:
+public:
 	void shiftdown(shared_ptr<_Node> node) {
 		if (node == nullptr) {
 			throw string("無法下移 nullptr");
@@ -32,18 +33,19 @@ private:
 		}
 
 		// 若有子節點，找出時間戳較小的
-		shared_ptr<_Node> small_child = node->children[0];
+		shared_ptr<_Node> *small_child = &node->children[0];
 		if (node->children[1] != nullptr &&
-			node->children[1]->timestamp < small_child->timestamp) {
-			small_child = node->children[1];
+			node->children[1]->timestamp < (*small_child)->timestamp) {
+			small_child = &node->children[1];
 		}
 
 		// 若子節點時間戳小於父節點，交換父子節點
-		if (small_child->timestamp < node->timestamp) {
-			swap(node->key, small_child->key);
-			swap(node->timestamp, small_child->timestamp);
+		if ((*small_child)->timestamp < node->timestamp) {
+			make_mut(small_child);
+			swap(node->key, (*small_child)->key);
+			swap(node->timestamp, (*small_child)->timestamp);
 			// 向下遞迴
-			shiftdown(small_child);
+			shiftdown(*small_child);
 		}
 	}
 	// NOTE: 可用 32 - __builtin_clz(x) 優化
@@ -55,7 +57,6 @@ private:
 //		printf("x = %d, high_bit(x) = %d\n", x, i - 1);
 		return i - 1;
 	}
-public:
 	shared_ptr<_Node> root;
 	int capacity;
 	int current_timestamp;
@@ -88,7 +89,7 @@ public:
 				if (node->children[1] != nullptr) {
 					q.push(node->children[1]);
 				}
-				printf("%d ", node->timestamp);
+				printf("(%d, %d) ", node->key, node->timestamp);
 			}
 			puts("");
 		}
