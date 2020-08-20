@@ -14,6 +14,7 @@ add_executable(immutable_lru_test test_immutable.cpp LRU.h memory.hpp
         simple-copy/lru.hpp simple-copy/mutable-lru.hpp
         rb-tree/lru.hpp rb-tree/node.hpp rb-tree/rb_tree.hpp
         order-tree/lru.hpp order-tree/order_tree.hpp
+        heap/lru.hpp heap/heap.hpp
         )
 
 set(CPACK_PROJECT_NAME ${PROJECT_NAME})

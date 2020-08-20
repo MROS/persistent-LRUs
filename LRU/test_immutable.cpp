@@ -8,6 +8,7 @@
 #include "simple-copy/lru.hpp"
 #include "rb-tree/lru.hpp"
 #include "order-tree/lru.hpp"
+#include "heap/lru.hpp"
 #include "LRU.h"
 using namespace std;
 
@@ -282,8 +283,8 @@ void print_ans(LRU<int, int> &lru_base, string name) {
 }
 
 int main(int argc, char *argv[]) {
-	// cases.insert(cases.end(), change_cache.begin(), change_cache.end());
-	 cases.insert(cases.end(), change_hitrate.begin(), change_hitrate.end());
+	 cases.insert(cases.end(), change_cache.begin(), change_cache.end());
+//	 cases.insert(cases.end(), change_hitrate.begin(), change_hitrate.end());
 //	cases.insert(cases.end(), change_putrate.begin(), change_putrate.end());
 //	SimpleCopyLRU<int, int> simple_copy_lru;
 //	test(simple_copy_lru);
@@ -293,13 +294,16 @@ int main(int argc, char *argv[]) {
 //	print_ans(simple_copy_lru, string("4"));
 //	print_ans(simple_copy_lru, string("im"));
 //	print_ans(simple_copy_lru, string("1-block"));
-	cout << "########### 測試 simple_copy #################" << endl;
-	SimpleCopyLRU<int, int> simple_copy_lru;
-	test(simple_copy_lru);
+//	cout << "########### 測試 simple_copy #################" << endl;
+//	SimpleCopyLRU<int, int> simple_copy_lru;
+//	test(simple_copy_lru);
 	cout << "########### 測試 order_tree #################" << endl;
 	OrderTreeLRU<int, int> order_tree_lru;
 	test(order_tree_lru);
 	cout << "########### 測試 rb_tree #################" << endl;
 	RBTreeLRU<int, int> rb_tree_lru;
 	test(rb_tree_lru);
+	cout << "########### 測試 heap_tree #################" << endl;
+	HeapLRU<int, int> heap_lru;
+	test(heap_lru);
 }
