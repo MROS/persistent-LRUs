@@ -23,7 +23,6 @@ template<typename Key>
 class Heap {
 public:
 	typedef HeapNode<Key> _Node;
-public:
 	void shiftdown(shared_ptr<_Node> node) {
 		if (node == nullptr) {
 			throw string("無法下移 nullptr");
@@ -59,17 +58,16 @@ public:
 	}
 	shared_ptr<_Node> root;
 	int capacity;
-	int current_timestamp;
+	int used;
 	Heap() = default;
-	Heap(int capacity) : root(nullptr), capacity(capacity), current_timestamp(1) {}
+	Heap(int capacity) : root(nullptr), capacity(capacity), used(1) {}
 	shared_ptr<Heap> new_version() {
 		shared_ptr<Heap> ret = make_shared<Heap>();
 		ret->capacity = capacity;
-		ret->current_timestamp = current_timestamp;
 		if (root == nullptr) {
 			ret->root = nullptr;
 		} else {
-			ret->root = make_shared<_Node>();
+			ret->root = make_shared<_Node>(root->key, root->timestamp);
 			ret->root->children[0] = root->children[0];
 			ret->root->children[1] = root->children[1];
 		}
@@ -94,19 +92,26 @@ public:
 			puts("");
 		}
 	}
+	bool is_full() {
+		return used > capacity;
+	}
 	// 快取未滿時插入節點
-	void add(Key key) {
+	void add(Key key, int timestamp) {
 		if (root == nullptr) {
-			root = make_shared<_Node>(key, current_timestamp++);
-		} else {
-			int h = high_bit(current_timestamp) - 1;
+			root = make_shared<_Node>(key, timestamp);
+			used++;
+		} else if (used <= capacity) {
+			int h = high_bit(used) - 1;
 			shared_ptr<_Node> *cur = &root;
 			while (h >= 0) {
-				int br = (current_timestamp >> h) & 1;
+				int br = (used >> h) & 1;
 				cur = &((*cur)->children[br]);
 				h--;
 			}
-			*cur = make_shared<_Node>(key, current_timestamp++);
+			used++;
+			*cur = make_shared<_Node>(key, timestamp);
+		} else {
+			throw string("快取已滿仍試圖插入");
 		}
 	}
 };
