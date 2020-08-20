@@ -64,6 +64,7 @@ public:
 	shared_ptr<Heap> new_version() {
 		shared_ptr<Heap> ret = make_shared<Heap>();
 		ret->capacity = capacity;
+		ret->used = used;
 		if (root == nullptr) {
 			ret->root = nullptr;
 		} else {
@@ -87,7 +88,7 @@ public:
 				if (node->children[1] != nullptr) {
 					q.push(node->children[1]);
 				}
-				printf("(%d, %d) ", node->key, node->timestamp);
+				printf("(%d, t%d) ", node->key, node->timestamp);
 			}
 			puts("");
 		}

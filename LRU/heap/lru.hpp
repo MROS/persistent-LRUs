@@ -32,6 +32,7 @@ public:
 		}
 	}
 
+	explicit HeapLRU() = default;
 	explicit HeapLRU(size_t capacity) {
 		capacity = capacity;
 		heap = make_shared<Heap<Key>>(capacity);
@@ -56,9 +57,13 @@ public:
 		for (auto &cmd: cmds) {
 			if (std::get_if<Get<Key>>(&cmd) != nullptr) {
 				Get<Key> get = std::get<Get<Key>>(cmd);
-				if (new_cache->map.count(get.key) == 0) {
+//				printf("get (%d)\n", get.key);
+				bool key_exist = new_cache->map.count(get.key);
+				if (!key_exist) {
+					// 快取 miss
 					continue;
 				} else {
+					// 快取命中
 					_Info info = new_cache->map[get.key];
 					info.timestamp = new_timestamp++;
 					new_cache->map = new_cache->map.set(get.key, info);
@@ -66,13 +71,17 @@ public:
 				}
 			} else {
 				Put<Key, Value> put = std::get<Put<Key, Value>>(cmd);
+//				printf("put (%d, %d)\n", put.key, put.value);
 				bool key_exist = new_cache->map.count(put.key);
 				if (!key_exist) {
 					// 快取 miss
 					if (new_cache->heap->is_full()) {
 						// heap 已滿
-						new_cache->heap->root->timestamp = new_timestamp;
+						new_cache->map = new_cache->map.erase(new_cache->heap->root->key);
+						new_cache->map = new_cache->map.set(put.key, { new_timestamp, put.value });
+						new_cache->heap->root->timestamp = new_timestamp++;
 						new_cache->heap->root->key = put.key;
+						new_cache->heap->shiftdown(new_cache->heap->root);
 						new_cache->maintain_root();
 					} else {
 						// heap 未滿
@@ -85,8 +94,8 @@ public:
 					new_cache->maintain_root();
 				}
 			}
+//			new_cache->heap->show();
 		}
-
 		new_cache->timestamp = new_timestamp;
 		return new_cache;
 	}
