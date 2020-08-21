@@ -107,6 +107,7 @@ public:
 			while (h >= 0) {
 				int br = (used >> h) & 1;
 				cur = &((*cur)->children[br]);
+				make_mut(cur);
 				h--;
 			}
 			used++;
